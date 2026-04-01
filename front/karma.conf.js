@@ -10,6 +10,7 @@ module.exports = function (config) {
       require("karma-chrome-launcher"),
       require("karma-jasmine-html-reporter"),
       require("karma-coverage"),
+      require("karma-junit-reporter"),
       require("@angular-devkit/build-angular/plugins/karma"),
     ],
     client: {
@@ -29,7 +30,7 @@ module.exports = function (config) {
       subdir: ".",
       reporters: [{ type: "html" }, { type: "text-summary" }],
     },
-    reporters: ["progress", "kjhtml"],
+    reporters: ["progress", "kjhtml", "junit"],
     browsers: ["ChromeHeadlessNoSandbox", "ChromeHeadless", "Chrome"],
     customLaunchers: {
       ChromeHeadlessNoSandbox: {
@@ -38,5 +39,10 @@ module.exports = function (config) {
       },
     },
     restartOnFileChange: true,
+    junitReporter: {
+      outputDir: "test-results/angular",
+      outputFile: "karma-junit.xml",
+      useBrowserName: false,
+    },
   });
 };
