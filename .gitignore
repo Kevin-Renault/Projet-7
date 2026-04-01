@@ -1,0 +1,46 @@
+# Node.js / Angular
+front/node_modules/
+front/dist/
+front/.angular/cache/
+front/.env
+front/.env.*
+front/.vscode/
+front/coverage/
+front/test-results/
+
+# Java / Gradle / Maven
+back/build/
+back/.gradle/
+back/.idea/
+back/.classpath
+back/.project
+back/.settings/
+back/target/
+back/.env
+back/.vscode/
+
+# System files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+
+# Test & coverage artifacts
+**/test-results/
+**/coverage/
+**/reports/
+
+# Sonar / IDE
+.sonarlint/
+sonarlint_vscode_logs.txt
+.idea/
+.vscode/
+
+# OS / Editor
+*.iml
+*.sublime-workspace
+*.sublime-project
+
+# Misc
+run-tests.sh.bak
