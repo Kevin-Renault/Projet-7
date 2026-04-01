@@ -1,0 +1,53 @@
+name: Check Branch Naming Convention
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - dev
+
+jobs:
+  check-branch-naming:
+    name: Validate branch is created from dev (or is a bugfix branch)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check branch origin
+        run: |
+          BRANCH_NAME="${{ github.ref_name }}"
+          echo "Current branch: $BRANCH_NAME"
+
+          # bugfix/* branches are exempt from the "must branch from dev" rule
+          if [[ "$BRANCH_NAME" == bugfix/* ]]; then
+            echo "✅ Branch '$BRANCH_NAME' is a bugfix branch — exempt from origin checks."
+            exit 0
+          fi
+
+          # For all other branches, verify they were branched from dev
+          git fetch origin dev
+
+          # Find the earliest commit on this branch that is not already on dev
+          FIRST_BRANCH_COMMIT=$(git log origin/dev..HEAD --oneline | tail -1 | awk '{print $1}')
+
+          if [[ -z "$FIRST_BRANCH_COMMIT" ]]; then
+            echo "✅ Branch '$BRANCH_NAME' has no commits beyond 'dev' — it is up to date with dev."
+            exit 0
+          fi
+
+          # Get the parent of the first branch-specific commit
+          PARENT_COMMIT=$(git log --pretty=%P -1 "$FIRST_BRANCH_COMMIT")
+
+          # The parent must be reachable from dev (i.e., the branch was created from dev)
+          if git merge-base --is-ancestor "$PARENT_COMMIT" origin/dev; then
+            echo "✅ Branch '$BRANCH_NAME' was created from 'dev'."
+          else
+            echo "❌ Branch '$BRANCH_NAME' was NOT created from 'dev'."
+            echo "All branches (except bugfix/*) must be created from 'dev'."
+            exit 1
+          fi
