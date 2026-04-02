@@ -108,7 +108,9 @@ jobs:
         if: env.RELEASE_VERSION != ''
         uses: docker/build-push-action@v5
         with:
-          context: ${{ env.JAVA_DIR }}
+          context: .
+          file: ./Dockerfile
+          target: ${{ env.JAVA_DIR }}
           push: true
           tags: ghcr.io/${{ env.REPO_LOWER }}:backend-v${{ env.RELEASE_VERSION }}
 
@@ -116,7 +118,9 @@ jobs:
         if: env.RELEASE_VERSION != ''
         uses: docker/build-push-action@v5
         with:
-          context: ${{ env.ANGULAR_DIR }}
+          context: .
+          file: ./Dockerfile
+          target: ${{ env.ANGULAR_DIR }}
           push: true
           tags: ghcr.io/${{ env.REPO_LOWER }}:frontend-v${{ env.RELEASE_VERSION }}
 
