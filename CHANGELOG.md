@@ -1,3 +1,10 @@
+# [1.0.0-dev.7](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-04-02)
+
+
+### Bug Fixes
+
+* **packages:** typo ([dda4243](https://github.com/Kevin-Renault/Projet-7/commit/dda42435e95f3429ece0106000fb3582d1e638e8))
+
 # [1.0.0-dev.6](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-04-02)
 
 
