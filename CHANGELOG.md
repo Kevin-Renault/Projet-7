@@ -1,3 +1,10 @@
+# [1.1.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0...v1.1.0-dev.1) (2026-04-02)
+
+
+### Features
+
+* **ci:** add SonarCloud analysis for backend and frontend ([e9e0833](https://github.com/Kevin-Renault/Projet-7/commit/e9e08334f2814f4f8f786dc3b50a0fd13c5c251c))
+
 # 1.0.0 (2026-04-02)
 
 
