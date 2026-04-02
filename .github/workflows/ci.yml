@@ -65,6 +65,8 @@ jobs: # Définition des jobs (briques)
     steps:
       - name: Checkout code # Récupère le code du repo
         uses: actions/checkout@v4
+      - name: Make load-path-env.sh executable
+        run: chmod +x ./scripts/load-path-env.sh
       - name: Load shared path config
         run: ./scripts/load-path-env.sh
       - name: Set up Docker Buildx # Prépare l'outil Docker Buildx pour le build multi-plateforme
@@ -125,6 +127,8 @@ jobs: # Définition des jobs (briques)
     steps:
       - name: Checkout code # Récupère le code du repo
         uses: actions/checkout@v4
+      - name: Make load-path-env.sh executable
+        run: chmod +x ./scripts/load-path-env.sh
       - name: Load shared path config
         run: ./scripts/load-path-env.sh
       - name: Set up Docker Buildx # Prépare l'outil Docker Buildx pour le build multi-plateforme
