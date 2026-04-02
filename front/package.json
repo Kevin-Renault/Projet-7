@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Kevin-Renault/Projet-7.git"
+    "url": "https://github.com/Kevin-Renault/Projet-7.git"
   },
+  "homepage": "https://github.com/Kevin-Renault/Projet-7",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
