@@ -1,11 +1,6 @@
 {
   "name": "microcrm",
-  "version": "1.0.0-dev.5",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Kevin-Renault/Projet-7.git"
-  },
-  "homepage": "https://github.com/Kevin-Renault/Projet-7",
+  "version": "1.0.0-dev.6",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
