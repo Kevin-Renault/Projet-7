@@ -39,7 +39,7 @@ RUN apk add openjdk21-jre-headless
 
 WORKDIR /app
 
-EXPOSE 4200
+EXPOSE 8080
 
 CMD ["java", "-jar", "/app/back/microcrm-0.0.1-SNAPSHOT.jar"]
 
