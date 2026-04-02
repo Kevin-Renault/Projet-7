@@ -3,13 +3,43 @@ plugins {
 	id 'org.springframework.boot' version '3.2.5'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'com.adarshr.test-logger' version '4.0.0'
+	id 'maven-publish'
 }
 
 group = 'com.openclassroom.devops.orion'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0-dev.7'
 
 java {
 	sourceCompatibility = '17'
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			from components.java
+			artifactId = 'microcrm'
+			pom {
+				name = 'microcrm'
+				description = 'MicroCRM backend'
+				url = 'https://github.com/Kevin-Renault/Projet-7'
+				scm {
+					connection = 'scm:git:git://github.com/Kevin-Renault/Projet-7.git'
+					developerConnection = 'scm:git:ssh://git@github.com:Kevin-Renault/Projet-7.git'
+					url = 'https://github.com/Kevin-Renault/Projet-7'
+				}
+			}
+		}
+	}
+	repositories {
+		maven {
+			name = 'GitHubPackages'
+			url = uri('https://maven.pkg.github.com/Kevin-Renault/Projet-7')
+			credentials {
+				username = System.getenv('GITHUB_ACTOR')
+				password = System.getenv('GITHUB_TOKEN')
+			}
+		}
+	}
 }
 
 repositories {

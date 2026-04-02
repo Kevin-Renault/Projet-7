@@ -13,6 +13,8 @@ COPY ./back /src
 
 WORKDIR /src
 
+RUN chmod +x ./gradlew
+
 RUN ./gradlew build
 
 FROM alpine:3.19 as front
@@ -31,15 +33,17 @@ CMD ["/usr/sbin/caddy", "run"]
 
 FROM alpine:3.19 as back
 
-COPY --from=back-build /src/build/libs/microcrm-0.0.1-SNAPSHOT.jar /app/back/microcrm-0.0.1-SNAPSHOT.jar
+COPY --from=back-build /src/build/libs /tmp/build-libs
 
 RUN apk add openjdk21-jre-headless
+RUN mkdir -p /app/back \
+    && find /tmp/build-libs -maxdepth 1 -name '*.jar' ! -name '*-plain.jar' -exec cp {} /app/back/microcrm.jar \;
 
 WORKDIR /app
 
-EXPOSE 4200
+EXPOSE 8080
 
-CMD ["java", "-jar", "/app/back/microcrm-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "/app/back/microcrm.jar"]
 
 FROM alpine:3.19 as standalone
 
