@@ -13,8 +13,8 @@ jobs:
       contents: write
       packages: write
     env:
-      ANGULAR_DIR: Frontend
-      JAVA_DIR: Backend
+      ANGULAR_DIR: front
+      JAVA_DIR: back
       RELEASE_VERSION: ''
       NPM_DIST_TAG: latest
       REPO_LOWER: ''

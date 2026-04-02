@@ -36,7 +36,7 @@ jobs: # Définition des jobs (briques)
           with:
             node-version: '24'
             cache: npm
-            cache-dependency-path: Frontend/package-lock.json
+            cache-dependency-path: front/package-lock.json
         - name: Ensure run-tests.sh is executable
           run: chmod +x ./run-tests.sh
         - name: Run all tests (backend & frontend)

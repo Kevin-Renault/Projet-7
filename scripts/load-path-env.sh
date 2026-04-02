@@ -3,8 +3,8 @@ set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ENV_FILE="$SCRIPT_DIR/../.env"
 
-DEFAULT_ANGULAR_DIR=Frontend
-DEFAULT_JAVA_DIR=Backend
+DEFAULT_ANGULAR_DIR=front
+DEFAULT_JAVA_DIR=back
 
 if [ -f "$ENV_FILE" ]; then
     set -o allexport
