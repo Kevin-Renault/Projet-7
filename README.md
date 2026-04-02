@@ -106,6 +106,32 @@ cd back
 ./gradlew test
 ```
 
+### Qualité de code SonarQube
+
+L'analyse SonarQube est branchée dans la CI GitHub Actions après les tests.
+
+#### Prérequis
+
+- Un serveur SonarQube ou SonarQube Cloud
+- Un token SonarQube valide
+- Une clé de projet SonarQube, ici `microcrm-projet-7`
+
+#### Configuration GitHub
+
+Ajoute dans les paramètres du dépôt :
+
+- un secret `SONAR_TOKEN`
+- la clé d'organisation SonarCloud `kevin-renault`
+
+La CI utilise maintenant SonarCloud (`https://sonarcloud.io`) plutôt qu'un serveur local.
+
+#### Rapports pris en compte
+
+- couverture Java : `back/build/reports/jacoco/test/jacocoTestReport.xml`
+- couverture Angular : `front/coverage/olympic-games-starter/lcov.info`
+
+L'analyse couvre le backend et le frontend dans un seul projet SonarQube.
+
 ### Images Docker
 
 #### Client
