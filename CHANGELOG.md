@@ -1,3 +1,10 @@
+# [1.0.0-dev.2](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-04-02)
+
+
+### Bug Fixes
+
+* **release:** allow frontend package publishing to GitHub Packages ([038e34c](https://github.com/Kevin-Renault/Projet-7/commit/038e34cfb77727528044b186f26b5a8c121f7a22))
+
 # 1.0.0-dev.1 (2026-04-02)
 
 
