@@ -1,3 +1,10 @@
+# [1.0.0-dev.5](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-04-02)
+
+
+### Bug Fixes
+
+* **docker:** use stable jar name in backend image ([14a3e62](https://github.com/Kevin-Renault/Projet-7/commit/14a3e62abfb8912fc9349d7e4f44e29ca752ee02))
+
 # [1.0.0-dev.4](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-04-02)
 
 
