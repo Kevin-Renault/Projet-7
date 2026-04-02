@@ -1,3 +1,10 @@
+# [1.0.0-dev.6](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-04-02)
+
+
+### Bug Fixes
+
+* **packages:** add repository metadata to link frontend and backend packages ([62a4c01](https://github.com/Kevin-Renault/Projet-7/commit/62a4c01853e5814faf8bb9a4168504c6ec1220d6))
+
 # [1.0.0-dev.5](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-04-02)
 
 
