@@ -103,31 +103,18 @@ jobs: # Définition des jobs (briques)
           REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
           TAG=back-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
           docker pull ghcr.io/$REPO:$TAG
-      - name: Start test database
-        run: |
-          docker network create ci-network
-          docker run -d --name ci-db --network ci-network \
-            -e POSTGRES_USER=workshops_user \
-            -e POSTGRES_PASSWORD=oc2024 \
-            -e POSTGRES_DB=workshopsdb \
-            postgres:13
-          until docker exec ci-db pg_isready -U workshops_user; do sleep 3; done
       - name: Validate backend image
         run: |
           REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
           TAG=back-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
-          docker run -d --name ci-back --network ci-network -p 8080:8080 \
-            -e SPRING_DATASOURCE_URL=jdbc:postgresql://ci-db:5432/workshopsdb \
-            -e SPRING_DATASOURCE_USERNAME=workshops_user \
-            -e SPRING_DATASOURCE_PASSWORD=oc2024 \
+          docker run -d --name ci-back -p 8080:8080 \
             ghcr.io/$REPO:$TAG
           sleep 20
           curl -f http://localhost:8080/actuator/health || curl -f http://localhost:8080/
       - name: Cleanup backend validation
         if: always()
         run: |
-          docker rm -f ci-back ci-db || true
-          docker network rm ci-network || true
+          docker rm -f ci-back || true
 
   build-and-push-frontend:
     runs-on: ubuntu-latest
