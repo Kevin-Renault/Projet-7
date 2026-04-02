@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0...v1.1.0) (2026-04-02)
+
+
+### Bug Fixes
+
+* **ci:** add compiled classes for SonarCloud analysis ([59df6f2](https://github.com/Kevin-Renault/Projet-7/commit/59df6f2fcb275d64456ff1e47e3658c70ce9ab46))
+
+
+### Features
+
+* **ci:** add SonarCloud analysis for backend and frontend ([e9e0833](https://github.com/Kevin-Renault/Projet-7/commit/e9e08334f2814f4f8f786dc3b50a0fd13c5c251c))
+
 # [1.1.0-dev.2](https://github.com/Kevin-Renault/Projet-7/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-04-02)
 
 
