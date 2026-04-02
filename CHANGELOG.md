@@ -1,3 +1,10 @@
+# [1.0.0-dev.3](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-04-02)
+
+
+### Bug Fixes
+
+* **back:** add Maven publishing task for GitHub Packages ([a7602da](https://github.com/Kevin-Renault/Projet-7/commit/a7602daba0e7dd7a11d3dcb7dc3253f106ef7be3))
+
 # [1.0.0-dev.2](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-04-02)
 
 
