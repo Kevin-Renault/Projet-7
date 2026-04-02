@@ -18,6 +18,16 @@ publishing {
 		maven(MavenPublication) {
 			from components.java
 			artifactId = 'microcrm'
+			pom {
+				name = 'microcrm'
+				description = 'MicroCRM backend'
+				url = 'https://github.com/Kevin-Renault/Projet-7'
+				scm {
+					connection = 'scm:git:git://github.com/Kevin-Renault/Projet-7.git'
+					developerConnection = 'scm:git:ssh://git@github.com:Kevin-Renault/Projet-7.git'
+					url = 'https://github.com/Kevin-Renault/Projet-7'
+				}
+			}
 		}
 	}
 	repositories {
