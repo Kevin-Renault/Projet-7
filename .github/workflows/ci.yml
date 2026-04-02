@@ -37,6 +37,18 @@ jobs: # Définition des jobs (briques)
             node-version: '24'
             cache: npm
             cache-dependency-path: front/package-lock.json
+        # Installe Google Chrome pour les tests Angular
+        - name: Install Google Chrome
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y wget gnupg
+            wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+            echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+            sudo apt-get update
+            sudo apt-get install -y google-chrome-stable
+        # Définit la variable d'environnement CHROME_BIN
+        - name: Set CHROME_BIN env variable
+          run: echo "CHROME_BIN=$(which google-chrome)" >> $GITHUB_ENV
         - name: Ensure run-tests.sh is executable
           run: chmod +x ./run-tests.sh
         - name: Run all tests (backend & frontend)
