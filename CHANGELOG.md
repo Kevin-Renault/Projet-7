@@ -1,3 +1,10 @@
+# [1.1.0-dev.2](https://github.com/Kevin-Renault/Projet-7/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-04-02)
+
+
+### Bug Fixes
+
+* **ci:** add compiled classes for SonarCloud analysis ([59df6f2](https://github.com/Kevin-Renault/Projet-7/commit/59df6f2fcb275d64456ff1e47e3658c70ce9ab46))
+
 # [1.1.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0...v1.1.0-dev.1) (2026-04-02)
 
 
