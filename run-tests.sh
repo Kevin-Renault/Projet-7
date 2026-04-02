@@ -80,7 +80,7 @@ cd "$ANGULAR_DIR"
 echo "[Frontend] Lancement des tests Angular..."
 npm install
 #npm run test -- --watch=false --browsers=ChromeHeadless --reporters=junit,progress --code-coverage
-CHROME_BIN="C:\Program Files\Google\Chrome\Application\chrome.exe" npm  test -- --watch=false  --reporters=junit
+npm test -- --watch=false --reporters=junit
 #--browsers=ChromeHeadless --reporters=junit,progress --code-coverage
 # Les rapports JUnit sont générés dans ./test-results/junit/
 cd ..
