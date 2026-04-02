@@ -1,3 +1,10 @@
+# [1.0.0-dev.4](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-04-02)
+
+
+### Bug Fixes
+
+* **release:** build frontend and backend from root Dockerfile ([53be9a6](https://github.com/Kevin-Renault/Projet-7/commit/53be9a6cddfb940d35925da252edc95bdaf8e658))
+
 # [1.0.0-dev.3](https://github.com/Kevin-Renault/Projet-7/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-04-02)
 
 
