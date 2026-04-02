@@ -83,6 +83,12 @@ jobs: # Définition des jobs (briques)
         with:
           distribution: temurin
           java-version: '21'
+      - name: Make Gradle wrapper executable
+        working-directory: back
+        run: chmod +x ./gradlew
+      - name: Compile backend classes
+        working-directory: back
+        run: ./gradlew compileJava testClasses
       - name: Run SonarQube scan
         uses: sonarsource/sonarqube-scan-action@v2
         env:
