@@ -114,7 +114,7 @@ L'analyse SonarQube est branchée dans la CI GitHub Actions après les tests.
 
 - Un serveur SonarQube ou SonarQube Cloud
 - Un token SonarQube valide
-- Une clé de projet SonarQube, ici `microcrm-projet-7`
+- Une clé de projet SonarCloud, ici `Kevin-Renault_Projet-7`
 
 #### Configuration GitHub
 
