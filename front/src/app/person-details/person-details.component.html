@@ -4,25 +4,15 @@
       <div class="level-left">
         <h2 class="title level-item is-size-2">
           <span *ngIf="isNew">New person</span>
-          <span *ngIf="!isNew"
-            >Person "{{ person.firstName }} {{ person.lastName }}"</span
-          >
+          <span *ngIf="!isNew">Person "{{ person.firstName }} {{ person.lastName }}"</span>
         </h2>
       </div>
       <div class="level-right">
         <div class="buttons">
-          <button
-            (click)="savePerson()"
-            class="button is-primary is-medium level-item"
-            [disabled]="!personForm.valid"
-          >
+          <button (click)="savePerson()" class="button is-primary is-medium level-item" [disabled]="!personForm.valid">
             Save
           </button>
-          <button
-            (click)="deletePerson()"
-            class="button is-danger is-medium level-item"
-            [disabled]="!person.id"
-          >
+          <button (click)="deletePerson()" class="button is-danger is-medium level-item" [disabled]="!person.id">
             Delete
           </button>
         </div>
@@ -31,120 +21,68 @@
     <div class="columns">
       <div class="column">
         <div class="field">
-          <label class="label">First name *</label>
           <div class="control">
-            <input
-              class="input {{
+            <label for="firstName" class="label">First name *</label>
+            <input id="firstName" class="input {{
                 firstName.invalid && (firstName.dirty || firstName.touched)
                   ? 'is-danger'
                   : ''
-              }}"
-              required
-              type="text"
-              placeholder="John"
-              [(ngModel)]="person.firstName"
-              name="firstName"
-              #firstName="ngModel"
-            />
+              }}" required type="text" placeholder="John" [(ngModel)]="person.firstName" name="firstName"
+              #firstName="ngModel" />
           </div>
-          <p
-            *ngIf="firstName.invalid && (firstName.dirty || firstName.touched)"
-            class="help is-danger"
-          >
-            <span *ngIf="firstName.errors?.['required']"
-              >First name is required.</span
-            >
+          <p *ngIf="firstName.invalid && (firstName.dirty || firstName.touched)" class="help is-danger">
+            <span *ngIf="firstName.errors?.['required']">First name is required.</span>
           </p>
         </div>
         <div class="field">
-          <label class="label">Last name *</label>
+          <label for="lastName" class="label">Last name *</label>
           <div class="control">
-            <input
-              class="input {{
+            <input id="lastName" class="input {{
                 lastName.invalid && (lastName.dirty || lastName.touched)
                   ? 'is-danger'
                   : ''
-              }}"
-              required
-              type="text"
-              placeholder="Doe"
-              [(ngModel)]="person.lastName"
-              name="lastName"
-              #lastName="ngModel"
-            />
+              }}" required type="text" placeholder="Doe" [(ngModel)]="person.lastName" name="lastName"
+              #lastName="ngModel" />
           </div>
-          <p
-            *ngIf="lastName.invalid && (lastName.dirty || lastName.touched)"
-            class="help is-danger"
-          >
-            <span *ngIf="lastName.errors?.['required']"
-              >Last name is required.</span
-            >
+          <p *ngIf="lastName.invalid && (lastName.dirty || lastName.touched)" class="help is-danger">
+            <span *ngIf="lastName.errors?.['required']">Last name is required.</span>
           </p>
         </div>
         <div class="field">
-          <label class="label">Email</label>
+          <label for="email" class="label">Email</label>
           <div class="control">
-            <input
-              class="input {{
+            <input id="email" class="input {{
                 email.invalid && (email.dirty || email.touched)
                   ? 'is-danger'
                   : ''
-              }}"
-              type="email"
-              placeholder="jdoe@gmail.com"
-              [(ngModel)]="person.email"
-              name="email"
-              #email="ngModel"
-            />
+              }}" type="email" placeholder="jdoe@gmail.com" [(ngModel)]="person.email" name="email" #email="ngModel" />
           </div>
-          <p
-            *ngIf="email.invalid && (email.dirty || email.touched)"
-            class="help is-danger"
-          >
-            <span *ngIf="email.errors?.['email']"
-              >Email must be a valid email address.</span
-            >
+          <p *ngIf="email.invalid && (email.dirty || email.touched)" class="help is-danger">
+            <span *ngIf="email.errors?.['email']">Email must be a valid email address.</span>
           </p>
         </div>
         <div class="field">
-          <label class="label">Phone</label>
+          <label for="phone" class="label">Phone</label>
           <div class="control">
-            <input
-              class="input {{
+            <input id="phone" class="input {{
                 phone.invalid && (phone.dirty || phone.touched)
                   ? 'is-danger'
                   : ''
-              }}"
-              [(ngModel)]="person.phone"
-              name="phone"
-              #phone="ngModel"
-              type="tel"
-              placeholder="+1 (988) 112-8197"
-            />
+              }}" [(ngModel)]="person.phone" name="phone" #phone="ngModel" type="tel"
+              placeholder="+1 (988) 112-8197" />
           </div>
-          <p
-            *ngIf="phone.invalid && (phone.dirty || phone.touched)"
-            class="help is-danger"
-          >
-            <span *ngIf="phone.errors?.['tel']"
-              >Phone must be a valid phone number.</span
-            >
+          <p *ngIf="phone.invalid && (phone.dirty || phone.touched)" class="help is-danger">
+            <span *ngIf="phone.errors?.['tel']">Phone must be a valid phone number.</span>
           </p>
         </div>
       </div>
       <div class="column">
         <div class="field">
-          <label class="label">Bio</label>
+          <label for="bio" class="label">Bio</label>
           <div class="control">
-            <textarea
-              class="textarea {{
+            <textarea id="bio" class="textarea {{
                 bio.invalid && (bio.dirty || bio.touched) ? 'is-danger' : ''
-              }}"
-              [(ngModel)]="person.bio"
-              name="bio"
-              #bio="ngModel"
-            ></textarea>
+              }}" [(ngModel)]="person.bio" name="bio" #bio="ngModel"></textarea>
           </div>
         </div>
       </div>
@@ -155,10 +93,7 @@
         <div class="field has-addons">
           <div class="control is-expanded">
             <div class="select is-large is-fullwidth">
-              <select
-                [(ngModel)]="selectedOrganization"
-                [ngModelOptions]="{ standalone: true }"
-              >
+              <select [(ngModel)]="selectedOrganization" [ngModelOptions]="{ standalone: true }">
                 <option [ngValue]="null">Add organization</option>
                 <option [ngValue]="org" *ngFor="let org of organizations">
                   {{ org.name }}
@@ -168,11 +103,7 @@
           </div>
           <p class="control">
             <button class="button is-primary is-large">
-              <span
-                class="has-text-weight-bold"
-                (click)="addSelectedOrganization()"
-                >+</span
-              >
+              <span class="has-text-weight-bold" (click)="addSelectedOrganization()">+</span>
             </button>
           </p>
         </div>
@@ -180,17 +111,10 @@
           <tbody>
             <tr *ngFor="let org of organizations">
               <td>
-                <a
-                  class="is-size-4"
-                  [routerLink]="['/organizations', org.id]"
-                  >{{ org.name }}</a
-                >
+                <a class="is-size-4" [routerLink]="['/organizations', org.id]">{{ org.name }}</a>
               </td>
               <td>
-                <button
-                  class="button is-danger ml-5 is-pulled-right"
-                  (click)="removeOrganization(org)"
-                >
+                <button class="button is-danger ml-5 is-pulled-right" (click)="removeOrganization(org)">
                   <span class="has-text-weight-bold">X</span>
                 </button>
               </td>
