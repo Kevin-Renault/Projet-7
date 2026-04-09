@@ -1,7 +1,7 @@
 services:
   back:
     container_name: workshop-back
-    image: workshop-organizer
+    image: ${BACKEND_IMAGE:-}
     build:
       context: ./${JAVA_DIR}
     ports:
