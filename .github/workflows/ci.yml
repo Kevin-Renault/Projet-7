@@ -154,19 +154,25 @@ jobs: # Définition des jobs (briques)
         run: |
           BACKEND_IMAGE=ghcr.io/$REPO:$TAG docker compose -f docker-compose.yml up -d back
           for i in {1..30}; do
-            echo "[backend] Tentative $i/30 : vérification de Swagger sur http://localhost:8080/"
-            SWAGGER_PAGE=$(curl -fsS http://localhost:8080/ || true)
-            if printf '%s' "$SWAGGER_PAGE" | grep -q '<title>Swagger UI</title>'; then
-              echo "[backend] Swagger est disponible."
-              docker compose down
-              exit 0
+            echo "[backend] Tentative $i/30 : vérification du healthcheck sur http://localhost:8080/actuator/health"
+            HEALTH_RESPONSE=$(curl -fsS http://localhost:8080/actuator/health || true)
+            if printf '%s' "$HEALTH_RESPONSE" | grep -q '"status":"UP"'; then
+              echo "[backend] Healthcheck OK. Vérification de Swagger UI sur http://localhost:8080"
+              SWAGGER_PAGE=$(curl -fsS http://localhost:8080 || true)
+              if printf '%s' "$SWAGGER_PAGE" | grep -q '<title>Swagger UI</title>'; then
+                echo "[backend] Healthcheck et Swagger UI sont disponibles."
+                docker compose down
+                exit 0
+              fi
+              echo "[backend] Healthcheck OK, mais Swagger UI n'est pas encore disponible."
+            else
+              echo "[backend] Healthcheck pas encore prêt."
             fi
-            echo "[backend] Swagger n'est pas encore prêt. Nouvelle tentative dans 2 secondes."
             sleep 2
           done
 
-          echo "[backend] Swagger indisponible après 30 tentatives. Affichage des logs du conteneur app."
-          docker compose logs app
+          echo "[backend] Backend ou Swagger indisponible après 30 tentatives. Affichage des logs du conteneur back."
+          docker compose logs back
           docker compose down
           exit 1
 
@@ -179,27 +185,34 @@ jobs: # Définition des jobs (briques)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Make load-path-env.sh executable
+        run: chmod +x ./scripts/load-path-env.sh
       - name: Load shared path config
         run: ./scripts/load-path-env.sh
-      # Démarre la stack backend et vérifie l'endpoint de santé exposé localement.
+      # Démarre la stack backend et vérifie d'abord le healthcheck puis Swagger UI.
       - name: Validate backend with docker-compose
         run: |
-          cd "$JAVA_DIR"
-          docker compose -f docker-compose.yml up -d --build
+          docker compose -f docker-compose.yml up -d --build back
           for i in {1..30}; do
-            echo "[backend] Tentative $i/30 : vérification de Swagger sur http://localhost:8080/"
-            SWAGGER_PAGE=$(curl -fsS http://localhost:8080/ || true)
-            if printf '%s' "$SWAGGER_PAGE" | grep -q '<title>Swagger UI</title>'; then
-              echo "[backend] Swagger est disponible."
-              docker compose down
-              exit 0
+            echo "[backend] Tentative $i/30 : vérification du healthcheck sur http://localhost:8080/actuator/health"
+            HEALTH_RESPONSE=$(curl -fsS http://localhost:8080/actuator/health || true)
+            if printf '%s' "$HEALTH_RESPONSE" | grep -q '"status":"UP"'; then
+              echo "[backend] Healthcheck OK. Vérification de Swagger UI sur http://localhost:8080/swagger-ui/index.html"
+              SWAGGER_PAGE=$(curl -fsS http://localhost:8080/swagger-ui/index.html || true)
+              if printf '%s' "$SWAGGER_PAGE" | grep -q '<title>Swagger UI</title>'; then
+                echo "[backend] Healthcheck et Swagger UI sont disponibles."
+                docker compose down
+                exit 0
+              fi
+              echo "[backend] Healthcheck OK, mais Swagger UI n'est pas encore disponible."
+            else
+              echo "[backend] Healthcheck pas encore prêt."
             fi
-            echo "[backend] Swagger n'est pas encore prêt. Nouvelle tentative dans 2 secondes."
             sleep 2
           done
 
-          echo "[backend] Swagger indisponible après 30 tentatives. Affichage des logs du conteneur app."
-          docker compose logs app
+          echo "[backend] Backend ou Swagger indisponible après 30 tentatives. Affichage des logs du conteneur back."
+          docker compose logs back
           docker compose down
           exit 1
 
