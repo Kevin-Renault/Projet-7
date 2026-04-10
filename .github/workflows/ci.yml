@@ -130,6 +130,8 @@ jobs: # Définition des jobs (briques)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Load shared path config
+        run: ./scripts/load-path-env.sh
       - name: Set image tag
         run: |
           echo "TAG=back-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}" >> $GITHUB_ENV
@@ -142,8 +144,7 @@ jobs: # Définition des jobs (briques)
           password: ${{ secrets.ACTIONS_TOKEN }}
       - name: Pull backend image
         run: docker pull ghcr.io/$REPO:$TAG
-      - name: Load shared path config
-        run: ./scripts/load-path-env.sh
+      
       # Adapter le docker-compose.yml pour utiliser l'image ghcr.io/$REPO:$TAG
       - name: Validate backend with docker-compose
         run: |
@@ -208,6 +209,8 @@ jobs: # Définition des jobs (briques)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Make load-path-env.sh executable
+        run: chmod +x ./scripts/load-path-env.sh
       - name: Load shared path config
         run: ./scripts/load-path-env.sh
       # Vérifie que Nginx sert bien le front sur http://localhost.
@@ -258,7 +261,6 @@ jobs: # Définition des jobs (briques)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
