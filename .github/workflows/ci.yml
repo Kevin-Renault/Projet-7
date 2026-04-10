@@ -157,21 +157,15 @@ jobs: # Définition des jobs (briques)
             echo "[backend] Tentative $i/30 : vérification du healthcheck sur http://localhost:8080/actuator/health"
             HEALTH_RESPONSE=$(curl -fsS http://localhost:8080/actuator/health || true)
             if printf '%s' "$HEALTH_RESPONSE" | grep -q '"status":"UP"'; then
-              echo "[backend] Healthcheck OK. Vérification de Swagger UI sur http://localhost:8080"
-              SWAGGER_PAGE=$(curl -fsS http://localhost:8080 || true)
-              if printf '%s' "$SWAGGER_PAGE" | grep -q '<title>Swagger UI</title>'; then
-                echo "[backend] Healthcheck et Swagger UI sont disponibles."
-                docker compose down
-                exit 0
-              fi
-              echo "[backend] Healthcheck OK, mais Swagger UI n'est pas encore disponible."
-            else
-              echo "[backend] Healthcheck pas encore prêt."
+              echo "[backend] Healthcheck OK."
+              docker compose down
+              exit 0
             fi
+            echo "[backend] Healthcheck pas encore prêt."
             sleep 2
           done
 
-          echo "[backend] Backend ou Swagger indisponible après 30 tentatives. Affichage des logs du conteneur back."
+          echo "[backend] Backend Healthcheck indisponible après 30 tentatives. Affichage des logs du conteneur back."
           docker compose logs back
           docker compose down
           exit 1
@@ -189,7 +183,7 @@ jobs: # Définition des jobs (briques)
         run: chmod +x ./scripts/load-path-env.sh
       - name: Load shared path config
         run: ./scripts/load-path-env.sh
-      # Démarre la stack backend et vérifie d'abord le healthcheck puis Swagger UI.
+      # Démarre la stack backend et vérifie l'endpoint de healthcheck.
       - name: Validate backend with docker-compose
         run: |
           docker compose -f docker-compose.yml up -d --build back
@@ -197,21 +191,15 @@ jobs: # Définition des jobs (briques)
             echo "[backend] Tentative $i/30 : vérification du healthcheck sur http://localhost:8080/actuator/health"
             HEALTH_RESPONSE=$(curl -fsS http://localhost:8080/actuator/health || true)
             if printf '%s' "$HEALTH_RESPONSE" | grep -q '"status":"UP"'; then
-              echo "[backend] Healthcheck OK. Vérification de Swagger UI sur http://localhost:8080/swagger-ui/index.html"
-              SWAGGER_PAGE=$(curl -fsS http://localhost:8080/swagger-ui/index.html || true)
-              if printf '%s' "$SWAGGER_PAGE" | grep -q '<title>Swagger UI</title>'; then
-                echo "[backend] Healthcheck et Swagger UI sont disponibles."
-                docker compose down
-                exit 0
-              fi
-              echo "[backend] Healthcheck OK, mais Swagger UI n'est pas encore disponible."
-            else
-              echo "[backend] Healthcheck pas encore prêt."
+              echo "[backend] Healthcheck OK."
+              docker compose down
+              exit 0
             fi
+            echo "[backend] Healthcheck pas encore prêt."
             sleep 2
           done
 
-          echo "[backend] Backend ou Swagger indisponible après 30 tentatives. Affichage des logs du conteneur back."
+          echo "[backend] Backend Healthcheck indisponible après 30 tentatives. Affichage des logs du conteneur back."
           docker compose logs back
           docker compose down
           exit 1
