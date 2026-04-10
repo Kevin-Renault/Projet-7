@@ -129,7 +129,9 @@ jobs: # Définition des jobs (briques)
     needs: [build-and-push-backend]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4        
+      - name: Make load-path-env.sh executable
+        run: chmod +x ./scripts/load-path-env.sh
       - name: Load shared path config
         run: ./scripts/load-path-env.sh
       - name: Set image tag
