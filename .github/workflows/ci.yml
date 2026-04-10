@@ -131,7 +131,13 @@ jobs: # Définition des jobs (briques)
     needs: [build-and-push-backend]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4        
+        uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.ACTIONS_TOKEN }}
       - name: Make load-path-env.sh executable
         run: chmod +x ./scripts/load-path-env.sh
       - name: Load shared path config
