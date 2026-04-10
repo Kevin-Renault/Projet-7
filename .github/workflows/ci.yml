@@ -146,19 +146,13 @@ jobs: # Définition des jobs (briques)
         run: |
           echo "TAG=back-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}" >> $GITHUB_ENV
           echo "REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.ACTIONS_TOKEN }}
       - name: Pull backend image
         run: docker pull ghcr.io/$REPO:$TAG
       
       # Adapter le docker-compose.yml pour utiliser l'image ghcr.io/$REPO:$TAG
       - name: Validate backend with docker-compose
         run: |
-          BACKEND_IMAGE=ghcr.io/$REPO:$TAG docker compose -f docker-compose.yml up -d
+          BACKEND_IMAGE=ghcr.io/$REPO:$TAG docker compose -f docker-compose.yml up -d back
           for i in {1..30}; do
             echo "[backend] Tentative $i/30 : vérification de Swagger sur http://localhost:8080/"
             SWAGGER_PAGE=$(curl -fsS http://localhost:8080/ || true)
