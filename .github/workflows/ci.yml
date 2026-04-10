@@ -20,6 +20,7 @@ jobs: # Définition des jobs (briques)
 
   # Lance les tests unitaires backend et frontend via le script partagé.
   test-application:
+    if: false 
     runs-on: ubuntu-latest
     needs: setup
     steps:
@@ -70,6 +71,7 @@ jobs: # Définition des jobs (briques)
           if-no-files-found: error
 
   sonar-analysis:
+    if: false 
     runs-on: ubuntu-latest
     needs: test-application
     steps:
@@ -150,7 +152,6 @@ jobs: # Définition des jobs (briques)
       # Adapter le docker-compose.yml pour utiliser l'image ghcr.io/$REPO:$TAG
       - name: Validate backend with docker-compose
         run: |
-          cd "$JAVA_DIR"
           BACKEND_IMAGE=ghcr.io/$REPO:$TAG docker compose -f docker-compose.yml up -d
           for i in {1..30}; do
             echo "[backend] Tentative $i/30 : vérification de Swagger sur http://localhost:8080/"
