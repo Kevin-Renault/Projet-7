@@ -117,12 +117,40 @@ jobs: # Définition des jobs (briques)
       - name: Build and push backend image
         run: |
           REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          TAG=back-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
+          IMAGE_TAG=$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
+          BACKEND_IMAGE=ghcr.io/$REPO/backend:$IMAGE_TAG
           docker buildx build \
             --cache-from type=gha,scope=back \
             --cache-to type=gha,mode=max,scope=back \
             --target back \
-            --tag ghcr.io/$REPO:$TAG \
+            --tag $BACKEND_IMAGE \
+            --push \
+            .
+
+  build-and-push-frontend:
+    runs-on: ubuntu-latest
+    #needs: [test-application, sonar-analysis]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.ACTIONS_TOKEN }}
+      - name: Build and push frontend image
+        run: |
+          REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG=front-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
+          FRONTEND_IMAGE=ghcr.io/$REPO/frontend:$IMAGE_TAG
+          docker buildx build \
+            --cache-from type=gha,scope=front \
+            --cache-to type=gha,mode=max,scope=front \
+            --target front \
+            --tag $FRONTEND_IMAGE \
             --push \
             .
 
@@ -142,17 +170,13 @@ jobs: # Définition des jobs (briques)
         run: chmod +x ./scripts/load-path-env.sh
       - name: Load shared path config
         run: ./scripts/load-path-env.sh
-      - name: Set image tag
-        run: |
-          echo "TAG=back-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}" >> $GITHUB_ENV
-          echo "REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
       - name: Pull backend image
-        run: docker pull ghcr.io/$REPO:$TAG
+        run: docker pull $BACKEND_IMAGE
       
-      # Adapter le docker-compose.yml pour utiliser l'image ghcr.io/$REPO:$TAG
+      # Adapter le docker-compose.yml pour utiliser l'image $BACKEND_IMAGE
       - name: Validate backend with docker-compose
         run: |
-          BACKEND_IMAGE=ghcr.io/$REPO:$TAG docker compose -f docker-compose.yml up -d back
+          BACKEND_IMAGE=$BACKEND_IMAGE docker compose -f docker-compose.yml up -d back
           for i in {1..30}; do
             echo "[backend] Tentative $i/30 : vérification du healthcheck sur http://localhost:8080/actuator/health"
             HEALTH_RESPONSE=$(curl -fsS http://localhost:8080/actuator/health || true)
@@ -167,6 +191,55 @@ jobs: # Définition des jobs (briques)
 
           echo "[backend] Backend Healthcheck indisponible après 30 tentatives. Affichage des logs du conteneur back."
           docker compose logs back
+          docker compose down
+          exit 1
+          
+  # Reconstruit le frontend en image Docker avant la validation locale.*
+  validate-docker-frontend-with-pulled-image:
+    runs-on: ubuntu-latest
+    needs: [build-and-push-frontend]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.ACTIONS_TOKEN }}
+      - name: Make load-path-env.sh executable
+        run: chmod +x ./scripts/load-path-env.sh
+      - name: Load shared path config
+        run: ./scripts/load-path-env.sh
+
+      - name: Pull backend image
+        run: docker pull $BACKEND_IMAGE
+
+      - name: Pull frontend image
+        run: docker pull $FRONTEND_IMAGE
+
+      # Vérifie que Nginx sert bien le front sur http://localhost.
+      - name: Validate frontend with docker-compose
+        run: |
+          cd "$ANGULAR_DIR"
+          docker compose -f docker-compose.yml up -d --build front
+          for i in {1..30}; do
+            echo "[frontend] Tentative $i/30 : vérification de l'IHM sur http://localhost/"
+            ROOT_PAGE=$(curl -fsS http://localhost/ || true)
+            ROUTE_PAGE=$(curl -fsS http://localhost/ci-route-check || true)
+            if printf '%s' "$ROOT_PAGE" | grep -q '<title>Olympic Games App</title>' \
+              && printf '%s' "$ROOT_PAGE" | grep -q '<app-root></app-root>' \
+              && printf '%s' "$ROUTE_PAGE" | grep -q '<title>Olympic Games App</title>'; then
+              echo "[frontend] L'IHM Angular répond correctement."
+              docker compose down
+              exit 0
+            fi
+            echo "[frontend] L'IHM n'est pas encore prête. Nouvelle tentative dans 2 secondes."
+            sleep 2
+          done
+
+          echo "[frontend] L'IHM est indisponible après 30 tentatives. Affichage des logs du conteneur front."
+          docker compose logs front
           docker compose down
           exit 1
 

@@ -14,7 +14,7 @@ services:
 
   front:
     container_name: workshop-front
-    image: workshop-front
+    image: ${FRONTEND_IMAGE:-}
     build:
       context: ./${ANGULAR_DIR}
     ports:
