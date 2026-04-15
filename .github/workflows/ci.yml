@@ -438,11 +438,14 @@ jobs: # Définition des jobs (briques)
     needs: [setup, sonar-analysis, validate-docker-backend-with-pulled-image, validate-docker-frontend-with-pulled-image, release]
     if: always()
     permissions:
+      contents: write
       packages: write
     steps:
+      - name: Warn if cleanup token is missing
+        run: echo "Candidate image cleanup requires a PAT with read:packages and delete:packages scopes."
+
       - name: Delete candidate backend and frontend images from GHCR
         uses: actions/github-script@v7
-        continue-on-error: true
         env:
           IMAGE_TAG: ${{ needs.setup.outputs.image_tag }}
         with:
