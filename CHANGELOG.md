@@ -1,3 +1,20 @@
+# [1.1.0-dev.6](https://github.com/Kevin-Renault/Projet-7/compare/v1.1.0-dev.5...v1.1.0-dev.6) (2026-04-15)
+
+
+### Bug Fixes
+
+* **ci:** document GHCR cleanup token requirements ([5afaae5](https://github.com/Kevin-Renault/Projet-7/commit/5afaae53f25b51701ed56eddd139b859fa987611))
+* **ci:** make GHCR cleanup resilient to owner type and deletion errors ([13b562a](https://github.com/Kevin-Renault/Projet-7/commit/13b562a0f50ff6c9ebeb3406154a3b738a8289d8))
+
+
+### Performance Improvements
+
+* **ci:** add timeouts to long-running workflow jobs ([9ae2e72](https://github.com/Kevin-Renault/Projet-7/commit/9ae2e72868283f4e0f374c7c9184ef9ee5a04e2f))
+* **ci:** cancel superseded workflow runs with concurrency ([1e88ca6](https://github.com/Kevin-Renault/Projet-7/commit/1e88ca65c01455a122333edc3e1e42b884c9843a))
+* **ci:** enable Buildx cache for release images ([96efd05](https://github.com/Kevin-Renault/Projet-7/commit/96efd053129322307ed777fad1a03d7aa3257a63))
+* **ci:** enable Gradle cache in sonar-analysis ([c0ef052](https://github.com/Kevin-Renault/Projet-7/commit/c0ef05210bde96a3a69aee3bc42651d29273de61))
+* **ci:** enable npm cache in release job ([affffd5](https://github.com/Kevin-Renault/Projet-7/commit/affffd59575b2ec5cff68692c07e9d230808e5c9))
+
 # [1.1.0-dev.5](https://github.com/Kevin-Renault/Projet-7/compare/v1.1.0-dev.4...v1.1.0-dev.5) (2026-04-15)
 
 
