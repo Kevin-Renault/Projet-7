@@ -11,6 +11,10 @@ on: # Déclencheurs du workflow
   pull_request: # Sur chaque pull request
     branches: [ '**' ] # Toutes les branches
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs: # Définition des jobs (briques)
   setup: # Job d'initialisation, parent des autres jobs
     runs-on: ubuntu-latest # OS utilisé pour ce job
