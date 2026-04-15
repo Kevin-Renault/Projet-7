@@ -14,9 +14,21 @@ on: # Déclencheurs du workflow
 jobs: # Définition des jobs (briques)
   setup: # Job d'initialisation, parent des autres jobs
     runs-on: ubuntu-latest # OS utilisé pour ce job
+    outputs:
+      repo_lower: ${{ steps.meta.outputs.repo_lower }}
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+      backend_image: ${{ steps.meta.outputs.backend_image }}
+      frontend_image: ${{ steps.meta.outputs.frontend_image }}
     steps:
-      - name: Setup (meta)
-        run: echo "Setup job completed. Each job installs its own toolchain."
+      - name: Compute shared image metadata
+        id: meta
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG=$(echo "${{ github.ref_name }}" | tr '/' '-')-${{ github.sha }}
+          echo "repo_lower=$REPO_LOWER" >> "$GITHUB_OUTPUT"
+          echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "backend_image=ghcr.io/$REPO_LOWER/backend:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "frontend_image=ghcr.io/$REPO_LOWER/frontend:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
   # Lance les tests unitaires backend et frontend via le script partagé.
   test-application:
@@ -103,6 +115,9 @@ jobs: # Définition des jobs (briques)
   build-and-push-backend:
     runs-on: ubuntu-latest
     #needs: [test-application, sonar-analysis]
+    needs: setup
+    env:
+      BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -116,9 +131,6 @@ jobs: # Définition des jobs (briques)
           password: ${{ secrets.ACTIONS_TOKEN }}
       - name: Build and push backend image
         run: |
-          REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          IMAGE_TAG=$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
-          BACKEND_IMAGE=ghcr.io/$REPO/backend:$IMAGE_TAG
           docker buildx build \
             --cache-from type=gha,scope=back \
             --cache-to type=gha,mode=max,scope=back \
@@ -130,6 +142,9 @@ jobs: # Définition des jobs (briques)
   build-and-push-frontend:
     runs-on: ubuntu-latest
     #needs: [test-application, sonar-analysis]
+    needs: setup
+    env:
+      FRONTEND_IMAGE: ${{ needs.setup.outputs.frontend_image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -143,9 +158,6 @@ jobs: # Définition des jobs (briques)
           password: ${{ secrets.ACTIONS_TOKEN }}
       - name: Build and push frontend image
         run: |
-          REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          IMAGE_TAG=front-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
-          FRONTEND_IMAGE=ghcr.io/$REPO/frontend:$IMAGE_TAG
           docker buildx build \
             --cache-from type=gha,scope=front \
             --cache-to type=gha,mode=max,scope=front \
@@ -156,7 +168,9 @@ jobs: # Définition des jobs (briques)
 
   validate-docker-backend-with-pulled-image:
     runs-on: ubuntu-latest
-    needs: [build-and-push-backend]
+    needs: [setup, build-and-push-backend]
+    env:
+      BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -171,12 +185,12 @@ jobs: # Définition des jobs (briques)
       - name: Load shared path config
         run: ./scripts/load-path-env.sh
       - name: Pull backend image
-        run: docker pull $BACKEND_IMAGE
+        run: docker pull "$BACKEND_IMAGE"
       
       # Adapter le docker-compose.yml pour utiliser l'image $BACKEND_IMAGE
       - name: Validate backend with docker-compose
         run: |
-          BACKEND_IMAGE=$BACKEND_IMAGE docker compose -f docker-compose.yml up -d back
+          BACKEND_IMAGE="$BACKEND_IMAGE" docker compose -f docker-compose.yml up -d back
           for i in {1..30}; do
             echo "[backend] Tentative $i/30 : vérification du healthcheck sur http://localhost:8080/actuator/health"
             HEALTH_RESPONSE=$(curl -fsS http://localhost:8080/actuator/health || true)
@@ -197,7 +211,10 @@ jobs: # Définition des jobs (briques)
   # Reconstruit le frontend en image Docker avant la validation locale.*
   validate-docker-frontend-with-pulled-image:
     runs-on: ubuntu-latest
-    needs: [build-and-push-frontend]
+    needs: [setup, build-and-push-backend, build-and-push-frontend]
+    env:
+      BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
+      FRONTEND_IMAGE: ${{ needs.setup.outputs.frontend_image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -211,18 +228,16 @@ jobs: # Définition des jobs (briques)
         run: chmod +x ./scripts/load-path-env.sh
       - name: Load shared path config
         run: ./scripts/load-path-env.sh
-
       - name: Pull backend image
-        run: docker pull $BACKEND_IMAGE
+        run: docker pull "$BACKEND_IMAGE"
 
       - name: Pull frontend image
-        run: docker pull $FRONTEND_IMAGE
+        run: docker pull "$FRONTEND_IMAGE"
 
       # Vérifie que Nginx sert bien le front sur http://localhost.
       - name: Validate frontend with docker-compose
         run: |
-          cd "$ANGULAR_DIR"
-          docker compose -f docker-compose.yml up -d --build front
+          BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" docker compose -f docker-compose.yml up -d front
           for i in {1..30}; do
             echo "[frontend] Tentative $i/30 : vérification de l'IHM sur http://localhost/"
             ROOT_PAGE=$(curl -fsS http://localhost/ || true)
