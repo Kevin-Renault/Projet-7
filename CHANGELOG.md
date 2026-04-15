@@ -1,3 +1,10 @@
+# [1.1.0-dev.4](https://github.com/Kevin-Renault/Projet-7/compare/v1.1.0-dev.3...v1.1.0-dev.4) (2026-04-15)
+
+
+### Bug Fixes
+
+* **ci:** allow frontend package publication in release job ([8919b42](https://github.com/Kevin-Renault/Projet-7/commit/8919b425472716101eb5f00c10d3e3b29f54fe07))
+
 # [1.1.0-dev.3](https://github.com/Kevin-Renault/Projet-7/compare/v1.1.0-dev.2...v1.1.0-dev.3) (2026-04-15)
 
 
