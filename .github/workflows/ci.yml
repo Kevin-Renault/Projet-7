@@ -442,6 +442,7 @@ jobs: # Définition des jobs (briques)
     steps:
       - name: Delete candidate backend and frontend images from GHCR
         uses: actions/github-script@v7
+        continue-on-error: true
         env:
           IMAGE_TAG: ${{ needs.setup.outputs.image_tag }}
         with:
@@ -451,40 +452,44 @@ jobs: # Définition des jobs (briques)
             const repoName = context.repo.repo.toLowerCase();
             const imageTag = process.env.IMAGE_TAG;
             const packageNames = [`${repoName}/backend`, `${repoName}/frontend`];
+            const ownerInfo = await github.request('GET /users/{username}', {
+              username: owner,
+            });
+            const isOrganization = ownerInfo.data.type === 'Organization';
+            const packageVersionListRoute = isOrganization
+              ? 'GET /orgs/{org}/packages/{package_type}/{package_name}/versions'
+              : 'GET /users/{username}/packages/{package_type}/{package_name}/versions';
+            const packageVersionDeleteRoute = isOrganization
+              ? 'DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}'
+              : 'DELETE /users/{username}/packages/{package_type}/{package_name}/versions/{package_version_id}';
+            const ownerParams = isOrganization ? { org: owner } : { username: owner };
 
             async function listVersions(packageName) {
               try {
-                return await github.paginate('GET /users/{username}/packages/{package_type}/{package_name}/versions', {
-                  username: owner,
+                return await github.paginate(packageVersionListRoute, {
+                  ...ownerParams,
                   package_type: 'container',
                   package_name: packageName,
                   per_page: 100,
                 });
-              } catch (userError) {
-                return await github.paginate('GET /orgs/{org}/packages/{package_type}/{package_name}/versions', {
-                  org: owner,
-                  package_type: 'container',
-                  package_name: packageName,
-                  per_page: 100,
-                });
+              } catch (error) {
+                core.warning(`Unable to list versions for ${packageName}: ${error.message}`);
+                return [];
               }
             }
 
             async function deleteVersion(packageName, versionId) {
               try {
-                await github.request('DELETE /users/{username}/packages/{package_type}/{package_name}/versions/{package_version_id}', {
-                  username: owner,
+                await github.request(packageVersionDeleteRoute, {
+                  ...ownerParams,
                   package_type: 'container',
                   package_name: packageName,
                   package_version_id: versionId,
                 });
-              } catch (userError) {
-                await github.request('DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}', {
-                  org: owner,
-                  package_type: 'container',
-                  package_name: packageName,
-                  package_version_id: versionId,
-                });
+                return true;
+              } catch (error) {
+                core.warning(`Unable to delete ${packageName}:${imageTag} (version ${versionId}): ${error.message}`);
+                return false;
               }
             }
 
@@ -501,8 +506,10 @@ jobs: # Définition des jobs (briques)
               }
 
               for (const version of matchingVersions) {
-                await deleteVersion(packageName, version.id);
-                core.info(`Deleted candidate image ${packageName}:${imageTag} (version ${version.id}).`);
+                const deleted = await deleteVersion(packageName, version.id);
+                if (deleted) {
+                  core.info(`Deleted candidate image ${packageName}:${imageTag} (version ${version.id}).`);
+                }
               }
             }
 
