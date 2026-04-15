@@ -330,6 +330,7 @@ jobs: # Définition des jobs (briques)
         run: |
           printf '%s:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=%s\n' "${GITHUB_PACKAGES_SCOPE}" "${NODE_AUTH_TOKEN}" > .npmrc
           npm pkg set name="${GITHUB_PACKAGES_SCOPE}/${FRONTEND_PACKAGE_NAME}"
+          npm pkg delete private
           npm pkg set publishConfig.registry="https://npm.pkg.github.com"
           echo "Publishing frontend package: ${GITHUB_PACKAGES_SCOPE}/${FRONTEND_PACKAGE_NAME}@${RELEASE_VERSION} with npm tag ${NPM_DIST_TAG}"
           npm publish --tag "${NPM_DIST_TAG}"
