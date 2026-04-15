@@ -374,6 +374,8 @@ jobs: # Définition des jobs (briques)
           context: .
           file: ./Dockerfile
           target: back
+          cache-from: type=gha,scope=back
+          cache-to: type=gha,mode=max,scope=back
           push: true
           tags: ghcr.io/${{ env.REPO_LOWER }}/backend:v${{ env.RELEASE_VERSION }}
 
@@ -385,6 +387,8 @@ jobs: # Définition des jobs (briques)
           context: .
           file: ./Dockerfile
           target: front
+          cache-from: type=gha,scope=front
+          cache-to: type=gha,mode=max,scope=front
           push: true
           tags: ghcr.io/${{ env.REPO_LOWER }}/frontend:v${{ env.RELEASE_VERSION }}
          
