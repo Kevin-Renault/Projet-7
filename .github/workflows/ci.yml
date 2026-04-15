@@ -242,9 +242,9 @@ jobs: # Définition des jobs (briques)
             echo "[frontend] Tentative $i/30 : vérification de l'IHM sur http://localhost/"
             ROOT_PAGE=$(curl -fsS http://localhost/ || true)
             ROUTE_PAGE=$(curl -fsS http://localhost/ci-route-check || true)
-            if printf '%s' "$ROOT_PAGE" | grep -q '<title>Olympic Games App</title>' \
+            if printf '%s' "$ROOT_PAGE" | grep -q '<title>MicroCRM</title>' \
               && printf '%s' "$ROOT_PAGE" | grep -q '<app-root></app-root>' \
-              && printf '%s' "$ROUTE_PAGE" | grep -q '<title>Olympic Games App</title>'; then
+              && printf '%s' "$ROUTE_PAGE" | grep -q '<title>MicroCRM</title>'; then
               echo "[frontend] L'IHM Angular répond correctement."
               docker compose down
               exit 0
@@ -314,9 +314,9 @@ jobs: # Définition des jobs (briques)
             echo "[frontend] Tentative $i/30 : vérification de l'IHM sur http://localhost/"
             ROOT_PAGE=$(curl -fsS http://localhost/ || true)
             ROUTE_PAGE=$(curl -fsS http://localhost/ci-route-check || true)
-            if printf '%s' "$ROOT_PAGE" | grep -q '<title>Olympic Games App</title>' \
+            if printf '%s' "$ROOT_PAGE" | grep -q '<title>MicroCRM</title>' \
               && printf '%s' "$ROOT_PAGE" | grep -q '<app-root></app-root>' \
-              && printf '%s' "$ROUTE_PAGE" | grep -q '<title>Olympic Games App</title>'; then
+              && printf '%s' "$ROUTE_PAGE" | grep -q '<title>MicroCRM</title>'; then
               echo "[frontend] L'IHM Angular répond correctement."
               docker compose down
               exit 0
