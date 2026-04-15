@@ -38,6 +38,7 @@ jobs: # Définition des jobs (briques)
   test-application:
     runs-on: ubuntu-latest
     needs: setup
+    timeout-minutes: 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -88,6 +89,7 @@ jobs: # Définition des jobs (briques)
   sonar-analysis:
     runs-on: ubuntu-latest
     needs: test-application
+    timeout-minutes: 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -118,6 +120,7 @@ jobs: # Définition des jobs (briques)
   build-and-push-backend:
     runs-on: ubuntu-latest
     needs: [setup, test-application, sonar-analysis]
+    timeout-minutes: 5
     env:
       BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
     steps:
@@ -144,6 +147,7 @@ jobs: # Définition des jobs (briques)
   build-and-push-frontend:
     runs-on: ubuntu-latest
     needs: [setup, test-application, sonar-analysis]
+    timeout-minutes: 5
     env:
       FRONTEND_IMAGE: ${{ needs.setup.outputs.frontend_image }}
     steps:
@@ -170,6 +174,7 @@ jobs: # Définition des jobs (briques)
   validate-docker-backend-with-pulled-image:
     runs-on: ubuntu-latest
     needs: [setup, build-and-push-backend]
+    timeout-minutes: 2
     env:
       BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
     steps:
@@ -213,6 +218,7 @@ jobs: # Définition des jobs (briques)
   validate-docker-frontend-with-pulled-image:
     runs-on: ubuntu-latest
     needs: [setup, build-and-push-backend, build-and-push-frontend]
+    timeout-minutes: 2
     env:
       BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
       FRONTEND_IMAGE: ${{ needs.setup.outputs.frontend_image }}
@@ -264,6 +270,7 @@ jobs: # Définition des jobs (briques)
   release:
     runs-on: ubuntu-latest
     needs: [setup, validate-docker-backend-with-pulled-image, validate-docker-frontend-with-pulled-image]
+    timeout-minutes: 5
     # La release ne part que sur push vers main ou dev.
     if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev')
     permissions:
