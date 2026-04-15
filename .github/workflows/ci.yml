@@ -97,6 +97,7 @@ jobs: # Définition des jobs (briques)
         with:
           distribution: temurin
           java-version: '21'
+          cache: gradle
       - name: Make Gradle wrapper executable
         working-directory: back
         run: chmod +x ./gradlew
