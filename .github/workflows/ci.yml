@@ -368,7 +368,9 @@ jobs: # Définition des jobs (briques)
         if: env.RELEASE_VERSION != ''
         uses: docker/build-push-action@v5
         with:
-          context: ${{ env.JAVA_DIR }}
+          context: .
+          file: ./Dockerfile
+          target: back
           push: true
           tags: ghcr.io/${{ env.REPO_LOWER }}/backend:v${{ env.RELEASE_VERSION }}
 
@@ -377,7 +379,9 @@ jobs: # Définition des jobs (briques)
         if: env.RELEASE_VERSION != ''
         uses: docker/build-push-action@v5
         with:
-          context: ${{ env.ANGULAR_DIR }}
+          context: .
+          file: ./Dockerfile
+          target: front
           push: true
           tags: ghcr.io/${{ env.REPO_LOWER }}/frontend:v${{ env.RELEASE_VERSION }}
          
