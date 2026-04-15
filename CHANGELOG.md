@@ -1,3 +1,10 @@
+# [1.1.0-dev.5](https://github.com/Kevin-Renault/Projet-7/compare/v1.1.0-dev.4...v1.1.0-dev.5) (2026-04-15)
+
+
+### Bug Fixes
+
+* **ci:** use root Dockerfile targets for release image builds ([db8eae4](https://github.com/Kevin-Renault/Projet-7/commit/db8eae44c8664fe76298c03c67251abd14cc46c3))
+
 # [1.1.0-dev.4](https://github.com/Kevin-Renault/Projet-7/compare/v1.1.0-dev.3...v1.1.0-dev.4) (2026-04-15)
 
 
