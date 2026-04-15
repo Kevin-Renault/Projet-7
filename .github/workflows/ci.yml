@@ -2,6 +2,7 @@
 name: CI Modular # Nom du workflow affiché dans GitHub Actions
 
 env:
+  # Force les actions JavaScript de GitHub à s'exécuter avec Node 24.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on: # Déclencheurs du workflow
@@ -13,59 +14,72 @@ on: # Déclencheurs du workflow
 jobs: # Définition des jobs (briques)
   setup: # Job d'initialisation, parent des autres jobs
     runs-on: ubuntu-latest # OS utilisé pour ce job
+    outputs:
+      repo_lower: ${{ steps.meta.outputs.repo_lower }}
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+      backend_image: ${{ steps.meta.outputs.backend_image }}
+      frontend_image: ${{ steps.meta.outputs.frontend_image }}
     steps:
-      - name: Setup (meta)
-        run: echo "Setup job completed. Each job installs its own toolchain."
+      - name: Compute shared image metadata
+        id: meta
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG=$(echo "${{ github.ref_name }}" | tr '/' '-')-${{ github.sha }}
+          echo "repo_lower=$REPO_LOWER" >> "$GITHUB_OUTPUT"
+          echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "backend_image=ghcr.io/$REPO_LOWER/backend:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "frontend_image=ghcr.io/$REPO_LOWER/frontend:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
+  # Lance les tests unitaires backend et frontend via le script partagé.
   test-application:
-      runs-on: ubuntu-latest
-      needs: setup
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
-        # Réutilise les dépendances Gradle entre deux exécutions du workflow.
-        - name: Set up Java with Gradle cache
-          uses: actions/setup-java@v4
-          with:
-            distribution: temurin
-            java-version: '21'
-            cache: gradle
-        # Réutilise le cache npm à partir du package-lock du frontend.
-        - name: Set up Node.js with npm cache
-          uses: actions/setup-node@v4
-          with:
-            node-version: '24'
-            cache: npm
-            cache-dependency-path: front/package-lock.json
-        # Installe Google Chrome pour les tests Angular
-        - name: Install Google Chrome
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y wget gnupg
-            wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-            echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-            sudo apt-get update
-            sudo apt-get install -y google-chrome-stable
-        # Définit la variable d'environnement CHROME_BIN
-        - name: Set CHROME_BIN env variable
-          run: echo "CHROME_BIN=$(which google-chrome)" >> $GITHUB_ENV
-        - name: Ensure run-tests.sh is executable
-          run: chmod +x ./run-tests.sh
-        - name: Run all tests (backend & frontend)
-          run: ./run-tests.sh
-        - name: Upload all JUnit test results
-          uses: actions/upload-artifact@v4
-          with:
-            name: test-results-all
-            path: test-results/*.xml
-        - name: Upload coverage reports
-          uses: actions/upload-artifact@v4
-          with:
-            name: coverage-reports
-            path: |
-              back/build/reports/jacoco/test/jacocoTestReport.xml
-              front/coverage/**/lcov.info
-            if-no-files-found: error
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      # Réutilise les dépendances Gradle entre deux exécutions du workflow.
+      - name: Set up Java with Gradle cache
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      # Réutilise le cache npm à partir du package-lock du frontend.
+      - name: Set up Node.js with npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+      # Installe Google Chrome pour les tests Angular
+      - name: Install Google Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+      # Définit la variable d'environnement CHROME_BIN
+      - name: Set CHROME_BIN env variable
+        run: echo "CHROME_BIN=$(which google-chrome)" >> $GITHUB_ENV
+      - name: Ensure run-tests.sh is executable
+        run: chmod +x ./run-tests.sh
+      - name: Run all tests (backend & frontend)
+        run: ./run-tests.sh
+      - name: Upload all JUnit test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-all
+          path: test-results/*.xml
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            back/build/reports/jacoco/test/jacocoTestReport.xml
+            front/coverage/**/lcov.info
+          if-no-files-found: error
 
   sonar-analysis:
     runs-on: ubuntu-latest
@@ -98,7 +112,9 @@ jobs: # Définition des jobs (briques)
 
   build-and-push-backend:
     runs-on: ubuntu-latest
-    needs: [test-application, sonar-analysis]
+    needs: [setup, test-application, sonar-analysis]
+    env:
+      BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -112,49 +128,19 @@ jobs: # Définition des jobs (briques)
           password: ${{ secrets.ACTIONS_TOKEN }}
       - name: Build and push backend image
         run: |
-          REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          TAG=back-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
           docker buildx build \
             --cache-from type=gha,scope=back \
             --cache-to type=gha,mode=max,scope=back \
             --target back \
-            --tag ghcr.io/$REPO:$TAG \
+            --tag $BACKEND_IMAGE \
             --push \
             .
 
-  validate-docker-backend:
-    runs-on: ubuntu-latest
-    needs: build-and-push-backend
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.ACTIONS_TOKEN }}
-      - name: Pull backend image
-        run: |
-          REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          TAG=back-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
-          docker pull ghcr.io/$REPO:$TAG
-      - name: Validate backend image
-        run: |
-          REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          TAG=back-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
-          docker run -d --name ci-back -p 8080:8080 \
-            ghcr.io/$REPO:$TAG
-          sleep 20
-          curl -f http://localhost:8080/actuator/health || curl -f http://localhost:8080/
-      - name: Cleanup backend validation
-        if: always()
-        run: |
-          docker rm -f ci-back || true
-
   build-and-push-frontend:
     runs-on: ubuntu-latest
-    needs: [test-application, sonar-analysis]
+    needs: [setup, test-application, sonar-analysis]
+    env:
+      FRONTEND_IMAGE: ${{ needs.setup.outputs.frontend_image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -168,19 +154,19 @@ jobs: # Définition des jobs (briques)
           password: ${{ secrets.ACTIONS_TOKEN }}
       - name: Build and push frontend image
         run: |
-          REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          TAG=front-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
           docker buildx build \
             --cache-from type=gha,scope=front \
             --cache-to type=gha,mode=max,scope=front \
             --target front \
-            --tag ghcr.io/$REPO:$TAG \
+            --tag $FRONTEND_IMAGE \
             --push \
             .
 
-  validate-docker-frontend:
+  validate-docker-backend-with-pulled-image:
     runs-on: ubuntu-latest
-    needs: build-and-push-frontend
+    needs: [setup, build-and-push-backend]
+    env:
+      BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -190,36 +176,231 @@ jobs: # Définition des jobs (briques)
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.ACTIONS_TOKEN }}
+      - name: Make load-path-env.sh executable
+        run: chmod +x ./scripts/load-path-env.sh
+      - name: Load shared path config
+        run: ./scripts/load-path-env.sh
+      - name: Pull backend image
+        run: docker pull "$BACKEND_IMAGE"
+      
+      # Adapter le docker-compose.yml pour utiliser l'image $BACKEND_IMAGE
+      - name: Validate backend with docker-compose
+        run: |
+          BACKEND_IMAGE="$BACKEND_IMAGE" docker compose -f docker-compose.yml up -d back
+          for i in {1..30}; do
+            echo "[backend] Tentative $i/30 : vérification du healthcheck sur http://localhost:8080/actuator/health"
+            HEALTH_RESPONSE=$(curl -fsS http://localhost:8080/actuator/health || true)
+            if printf '%s' "$HEALTH_RESPONSE" | grep -q '"status":"UP"'; then
+              echo "[backend] Healthcheck OK."
+              docker compose down
+              exit 0
+            fi
+            echo "[backend] Healthcheck pas encore prêt."
+            sleep 2
+          done
+
+          echo "[backend] Backend Healthcheck indisponible après 30 tentatives. Affichage des logs du conteneur back."
+          docker compose logs back
+          docker compose down
+          exit 1
+          
+  # Reconstruit le frontend en image Docker avant la validation locale.*
+  validate-docker-frontend-with-pulled-image:
+    runs-on: ubuntu-latest
+    needs: [setup, build-and-push-backend, build-and-push-frontend]
+    env:
+      BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
+      FRONTEND_IMAGE: ${{ needs.setup.outputs.frontend_image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.ACTIONS_TOKEN }}
+      - name: Make load-path-env.sh executable
+        run: chmod +x ./scripts/load-path-env.sh
+      - name: Load shared path config
+        run: ./scripts/load-path-env.sh
+      - name: Pull backend image
+        run: docker pull "$BACKEND_IMAGE"
+
       - name: Pull frontend image
+        run: docker pull "$FRONTEND_IMAGE"
+
+      # Vérifie que Nginx sert bien le front sur http://localhost.
+      - name: Validate frontend with docker-compose
         run: |
-          REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          TAG=front-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
-          docker pull ghcr.io/$REPO:$TAG
-      - name: Validate frontend image
+          BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" docker compose -f docker-compose.yml up -d front
+          for i in {1..30}; do
+            echo "[frontend] Tentative $i/30 : vérification de l'IHM sur http://localhost/"
+            ROOT_PAGE=$(curl -fsS http://localhost/ || true)
+            ROUTE_PAGE=$(curl -fsS http://localhost/ci-route-check || true)
+            if printf '%s' "$ROOT_PAGE" | grep -q '<title>MicroCRM</title>' \
+              && printf '%s' "$ROOT_PAGE" | grep -q '<app-root></app-root>' \
+              && printf '%s' "$ROUTE_PAGE" | grep -q '<title>MicroCRM</title>'; then
+              echo "[frontend] L'IHM Angular répond correctement."
+              docker compose down
+              exit 0
+            fi
+            echo "[frontend] L'IHM n'est pas encore prête. Nouvelle tentative dans 2 secondes."
+            sleep 2
+          done
+
+          echo "[frontend] L'IHM est indisponible après 30 tentatives. Affichage des logs du conteneur front."
+          docker compose logs front
+          docker compose down
+          exit 1
+
+
+  # Publie uniquement après succès des validations backend et frontend.
+  release:
+    runs-on: ubuntu-latest
+    needs: [setup, validate-docker-backend-with-pulled-image, validate-docker-frontend-with-pulled-image]
+    # La release ne part que sur push vers main ou dev.
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev')
+    permissions:
+      contents: write
+      packages: write
+    env:
+      # Variables partagées par semantic-release et les étapes de publication.
+      ANGULAR_DIR: front
+      JAVA_DIR: back
+      RELEASE_VERSION: ''
+      NPM_DIST_TAG: latest
+      REPO_LOWER: ${{ needs.setup.outputs.repo_lower }}
+      GITHUB_PACKAGES_SCOPE: ''
+      FRONTEND_PACKAGE_NAME: ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # Installe semantic-release et ses plugins pour calculer la prochaine version.
+      - name: Install dependencies
+        run: npm install --global semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github @semantic-release/commit-analyzer @semantic-release/exec @semantic-release/release-notes-generator
+
+      # Déclenche la génération de version et renseigne RELEASE_VERSION.
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        run: npx semantic-release
+
+      # Prépare le scope npm, le tag et le nom du package frontend à publier.
+      - name: Prepare release metadata
+        if: env.RELEASE_VERSION != ''
         run: |
-          REPO=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          TAG=front-$(echo ${{ github.ref_name }} | tr '/' '-')-${{ github.sha }}
-          docker run -d --name ci-front -p 80:80 ghcr.io/$REPO:$TAG
-          sleep 15
-          curl -f http://localhost
-      - name: Cleanup frontend validation
-        if: always()
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          FRONTEND_PACKAGE_NAME=$(node -p "require('./${ANGULAR_DIR}/package.json').name.split('/').pop()")
+          if [[ "${RELEASE_VERSION}" == *-* ]]; then
+            NPM_DIST_TAG=$(echo "${RELEASE_VERSION}" | sed -E 's/^[^-]+-([^.]+).*/\1/')
+          else
+            NPM_DIST_TAG=latest
+          fi
+          echo "GITHUB_PACKAGES_SCOPE=@${OWNER}" >> "$GITHUB_ENV"
+          echo "FRONTEND_PACKAGE_NAME=${FRONTEND_PACKAGE_NAME}" >> "$GITHUB_ENV"
+          echo "NPM_DIST_TAG=${NPM_DIST_TAG}" >> "$GITHUB_ENV"
+
+      # Réinstalle les dépendances frontend avec la version de release avant publication.
+      - name: Install frontend dependencies
+        if: env.RELEASE_VERSION != ''
+        working-directory: ${{ env.ANGULAR_DIR }}
+        run: npm ci
+
+      # Publie le package frontend sur GitHub Packages.
+      - name: Publish frontend package to GitHub Packages
+        if: env.RELEASE_VERSION != ''
+        working-directory: ${{ env.ANGULAR_DIR }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         run: |
-          docker rm -f ci-front || true
+          printf '%s:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=%s\n' "${GITHUB_PACKAGES_SCOPE}" "${NODE_AUTH_TOKEN}" > .npmrc
+          npm pkg set name="${GITHUB_PACKAGES_SCOPE}/${FRONTEND_PACKAGE_NAME}"
+          npm pkg set publishConfig.registry="https://npm.pkg.github.com"
+          echo "Publishing frontend package: ${GITHUB_PACKAGES_SCOPE}/${FRONTEND_PACKAGE_NAME}@${RELEASE_VERSION} with npm tag ${NPM_DIST_TAG}"
+          npm publish --tag "${NPM_DIST_TAG}"
+
+      # Rend le wrapper Gradle exécutable avant la publication Maven.
+      - name: Make Gradle wrapper executable
+        if: env.RELEASE_VERSION != ''
+        working-directory: ${{ env.JAVA_DIR }}
+        run: chmod +x ./gradlew
+
+      # Publie le backend sur GitHub Packages via Gradle.
+      - name: Publish backend package to GitHub Packages
+        if: env.RELEASE_VERSION != ''
+        working-directory: ${{ env.JAVA_DIR }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        run: ./gradlew publishMavenPublicationToGitHubPackagesRepository
+
+      # Prépare l'authentification pour pousser les images Docker de release.
+      - name: Log in to GitHub Container Registry
+        if: env.RELEASE_VERSION != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.ACTIONS_TOKEN }}
+
+      # Active Buildx pour les images de release.
+      - name: Set up Docker Buildx
+        if: env.RELEASE_VERSION != ''
+        uses: docker/setup-buildx-action@v3
+
+      # Pousse l'image backend taguée avec la version semver.
+      - name: Build and push backend release image
+        if: env.RELEASE_VERSION != ''
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.JAVA_DIR }}
+          push: true
+          tags: ghcr.io/${{ env.REPO_LOWER }}/backend:v${{ env.RELEASE_VERSION }}
+
+      # Pousse l'image frontend taguée avec la version semver.
+      - name: Build and push frontend release image
+        if: env.RELEASE_VERSION != ''
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.ANGULAR_DIR }}
+          push: true
+          tags: ghcr.io/${{ env.REPO_LOWER }}/frontend:v${{ env.RELEASE_VERSION }}
          
   merge-report:
     runs-on: ubuntu-latest
-    needs: [validate-docker-backend, validate-docker-frontend]
+    needs: [test-application, sonar-analysis]
     if: always()
     steps:
-      # Récupère les rapports produits par le job de test pour générer un résumé lisible.
+      # Récupère les rapports produits par les tests unitaires pour le résumé final.
       - name: Download test results artifact
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: test-results-all
           path: test-results
+      # Vérifie que les fichiers de résultats sont bien présents.
       - name: Show test-results content
-        run: ls -l test-results/
+        run: |
+          if [ -d test-results ]; then
+            ls -l test-results/
+          else
+            echo "Le dossier test-results est absent."
+          fi
+      # Injecte un résumé lisible dans l'onglet Step Summary de GitHub Actions.
       - name: Afficher le résumé lisible
         run: |
           echo "# Résumé des tests JUnit" >> "$GITHUB_STEP_SUMMARY"
@@ -236,6 +417,7 @@ jobs: # Définition des jobs (briques)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      # Point d'entrée pour fermer proprement les ressources ou ajouter du ménage futur.
       - name: Cleanup (placeholder)
         run: echo "Cleanup runs after all validations and report merge."
 
