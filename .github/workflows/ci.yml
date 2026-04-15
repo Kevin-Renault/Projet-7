@@ -290,6 +290,8 @@ jobs: # Définition des jobs (briques)
         uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
+          cache-dependency-path: front/package-lock.json
 
       # Installe semantic-release et ses plugins pour calculer la prochaine version.
       - name: Install dependencies
