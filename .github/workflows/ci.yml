@@ -119,7 +119,7 @@ jobs: # Définition des jobs (briques)
 
   build-and-push-backend:
     runs-on: ubuntu-latest
-    needs: [setup, test-application, sonar-analysis]
+    needs: [setup, test-application]
     timeout-minutes: 5
     env:
       BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
@@ -146,7 +146,7 @@ jobs: # Définition des jobs (briques)
 
   build-and-push-frontend:
     runs-on: ubuntu-latest
-    needs: [setup, test-application, sonar-analysis]
+    needs: [setup, test-application]
     timeout-minutes: 5
     env:
       FRONTEND_IMAGE: ${{ needs.setup.outputs.frontend_image }}
@@ -269,7 +269,7 @@ jobs: # Définition des jobs (briques)
   # Publie uniquement après succès des validations backend et frontend.
   release:
     runs-on: ubuntu-latest
-    needs: [setup, validate-docker-backend-with-pulled-image, validate-docker-frontend-with-pulled-image]
+    needs: [setup, sonar-analysis, validate-docker-backend-with-pulled-image, validate-docker-frontend-with-pulled-image]
     timeout-minutes: 5
     # La release ne part que sur push vers main ou dev.
     if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev')
@@ -432,15 +432,77 @@ jobs: # Définition des jobs (briques)
           else
             echo "Aucun rapport global trouvé (Report-summary.xml)." >> "$GITHUB_STEP_SUMMARY"
           fi
-          
-  cleanup: # Job de nettoyage final
+
+  cleanup-candidate-images:
     runs-on: ubuntu-latest
-    needs: merge-report
+    needs: [setup, sonar-analysis, validate-docker-backend-with-pulled-image, validate-docker-frontend-with-pulled-image, release]
     if: always()
+    permissions:
+      packages: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      # Point d'entrée pour fermer proprement les ressources ou ajouter du ménage futur.
-      - name: Cleanup (placeholder)
-        run: echo "Cleanup runs after all validations and report merge."
+      - name: Delete candidate backend and frontend images from GHCR
+        uses: actions/github-script@v7
+        env:
+          IMAGE_TAG: ${{ needs.setup.outputs.image_tag }}
+        with:
+          github-token: ${{ secrets.ACTIONS_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repoName = context.repo.repo.toLowerCase();
+            const imageTag = process.env.IMAGE_TAG;
+            const packageNames = [`${repoName}/backend`, `${repoName}/frontend`];
+
+            async function listVersions(packageName) {
+              try {
+                return await github.paginate('GET /users/{username}/packages/{package_type}/{package_name}/versions', {
+                  username: owner,
+                  package_type: 'container',
+                  package_name: packageName,
+                  per_page: 100,
+                });
+              } catch (userError) {
+                return await github.paginate('GET /orgs/{org}/packages/{package_type}/{package_name}/versions', {
+                  org: owner,
+                  package_type: 'container',
+                  package_name: packageName,
+                  per_page: 100,
+                });
+              }
+            }
+
+            async function deleteVersion(packageName, versionId) {
+              try {
+                await github.request('DELETE /users/{username}/packages/{package_type}/{package_name}/versions/{package_version_id}', {
+                  username: owner,
+                  package_type: 'container',
+                  package_name: packageName,
+                  package_version_id: versionId,
+                });
+              } catch (userError) {
+                await github.request('DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}', {
+                  org: owner,
+                  package_type: 'container',
+                  package_name: packageName,
+                  package_version_id: versionId,
+                });
+              }
+            }
+
+            for (const packageName of packageNames) {
+              const versions = await listVersions(packageName);
+              const matchingVersions = versions.filter((version) => {
+                const tags = version.metadata?.container?.tags || [];
+                return tags.includes(imageTag);
+              });
+
+              if (matchingVersions.length === 0) {
+                core.info(`No candidate image found for ${packageName}:${imageTag}.`);
+                continue;
+              }
+
+              for (const version of matchingVersions) {
+                await deleteVersion(packageName, version.id);
+                core.info(`Deleted candidate image ${packageName}:${imageTag} (version ${version.id}).`);
+              }
+            }
 
