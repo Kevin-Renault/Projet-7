@@ -1,20 +1,43 @@
-# [1.2.0-dev.2](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.0-dev.1...v1.2.0-dev.2) (2026-04-16)
+# [1.2.0](https://github.com/Kevin-Renault/Projet-7/compare/v1.1.0...v1.2.0) (2026-04-16)
 
 
 ### Bug Fixes
 
-* **back:** remove UnsupportedOperationException ([94dccca](https://github.com/Kevin-Renault/Projet-7/commit/94dcccaf7672bfe79fa8cd1eab611ff1c226f78c))
-* **back:** use constructor injection in initial data fixture ([e6d8c33](https://github.com/Kevin-Renault/Projet-7/commit/e6d8c33f519d48168023f30f3c6dc6c7b744ae0d))
-* **front:** associate organization name label with input ([0e351d6](https://github.com/Kevin-Renault/Projet-7/commit/0e351d6d07184691ead1561810332d7b1573d7ba))
-* **front:** remove invalid await usage in organization service ([eb5695d](https://github.com/Kevin-Renault/Projet-7/commit/eb5695d7777eb5ebd2df8319befd7bf6e44be6c7))
-* **front:** remove invalid await usage in person servic ([dae3942](https://github.com/Kevin-Renault/Projet-7/commit/dae39422318ea028fc30269562054d2eee6caa8c))
-* **sonar:** accessibility + htmlt indentation ([7a9d447](https://github.com/Kevin-Renault/Projet-7/commit/7a9d447a2b586d5065b0a068a528b0d1f869bc49))
-* **sonar:** remove unused import ([95a8c0b](https://github.com/Kevin-Renault/Projet-7/commit/95a8c0b4d2de49c08c79004843878b18de6fa66b))
-* **sonar:** remove unused import and make readonly parameter ([3792c8e](https://github.com/Kevin-Renault/Projet-7/commit/3792c8eea3338d4c4d93cba18950216b6aa01d70))
-* **sonar:** remove unused import and make readonly parameter ([ee190aa](https://github.com/Kevin-Renault/Projet-7/commit/ee190aa5b78e78c5dced530b8944c40e985864e4))
-* **sonar:** remove unused import and make readonly parameter and async method ([a1ed87f](https://github.com/Kevin-Renault/Projet-7/commit/a1ed87f4dd68d2616b15aceece9b9cd76b815b8e))
-* **sonar:** use diamond operator for generic instantiation ([9da7229](https://github.com/Kevin-Renault/Projet-7/commit/9da7229d6a6e89994faacbc25d52d6230455c0b3))
-* **test:** mark placeholder context test as unsupported ([deb06ff](https://github.com/Kevin-Renault/Projet-7/commit/deb06ff6ac90014342b0fc8b6f80db3adec6481d))
+* **accessibility:** associate form labels with inputs ([0b2ee0d](https://github.com/Kevin-Renault/Projet-7/commit/0b2ee0d912a8aa70d107e1106c5c3d96fbe42f15))
+* add login ([f847c6f](https://github.com/Kevin-Renault/Projet-7/commit/f847c6f065bd75295c90ff0c8ac5139d1e6b6674))
+* **ci:** add  login to validate-docker-backend-with-pulled-image step ([fa50437](https://github.com/Kevin-Renault/Projet-7/commit/fa50437b9166be139570b88e559b8aaff74f7755))
+* **ci:** add need sonar-analysis for merge-report job ([8820d22](https://github.com/Kevin-Renault/Projet-7/commit/8820d2215126e82e016e374127ac16780529e4ff))
+* **ci:** align frontend container checks with actual app title ([318d987](https://github.com/Kevin-Renault/Projet-7/commit/318d987827e041ce0b7a8c8f272523bb67894a1b))
+* **ci:** allow frontend package publication in release job ([8919b42](https://github.com/Kevin-Renault/Projet-7/commit/8919b425472716101eb5f00c10d3e3b29f54fe07))
+* **ci:** bad needs ([fbb90c0](https://github.com/Kevin-Renault/Projet-7/commit/fbb90c06c68781204f918d18fdb3643fb061613c))
+* **ci:** document GHCR cleanup token requirements ([5afaae5](https://github.com/Kevin-Renault/Projet-7/commit/5afaae53f25b51701ed56eddd139b859fa987611))
+* **ci:** fix docker-compose path ([d9d1ca0](https://github.com/Kevin-Renault/Projet-7/commit/d9d1ca04f2f8bd6bff86e4493313ee550cf24d34))
+* **ci:** fix permission denied on load-path-env.sh (add chmod step) ([6caa63b](https://github.com/Kevin-Renault/Projet-7/commit/6caa63b2562892268f8eda83e5a55ccabb94f1ca))
+* **ci:** fix permission denied on load-path-env.sh (add chmod step) ([133aa97](https://github.com/Kevin-Renault/Projet-7/commit/133aa97ee0eaf72081a89ca38d7a95c83a313a8e))
+* **ci:** make GHCR cleanup resilient to owner type and deletion errors ([13b562a](https://github.com/Kevin-Renault/Projet-7/commit/13b562a0f50ff6c9ebeb3406154a3b738a8289d8))
+* **ci:** use root Dockerfile targets for release image builds ([db8eae4](https://github.com/Kevin-Renault/Projet-7/commit/db8eae44c8664fe76298c03c67251abd14cc46c3))
+* docker build only back ([63e7285](https://github.com/Kevin-Renault/Projet-7/commit/63e728527ad746e9c875a15a7fb0cbb9c83a193d))
+* **docker:** use wget-based healthchecks for back and front containers ([fa3ccd6](https://github.com/Kevin-Renault/Projet-7/commit/fa3ccd62b2ea813f57558842a499cba49d440a39))
+* **front:** disable Caddy auto-HTTPS for CI container validation ([988fb4f](https://github.com/Kevin-Renault/Projet-7/commit/988fb4f4283785c14920c1a58b3841cc0165c1f7))
+* validate backend with healthcheck and Swagger UI readiness ([8011579](https://github.com/Kevin-Renault/Projet-7/commit/8011579da874226e1e23dabcdc56bcdf6305aa6d))
+
+
+### Features
+
+* **back:** add actuator health endpoint for CI validation ([523cc93](https://github.com/Kevin-Renault/Projet-7/commit/523cc93cd40e57c7cf3c6401ea698c95e4ecc6cf))
+* **back:** add Swagger UI for CI backend readiness checks ([2eee42b](https://github.com/Kevin-Renault/Projet-7/commit/2eee42b0f0ebc830b82c18384b3bddc58977206f))
+* **ci:** add frontend Docker circuit images for GHCR validation ([1407b4d](https://github.com/Kevin-Renault/Projet-7/commit/1407b4dfa7f36d38b0ec668e360b089e4c9b12df))
+* **ci:** align release jobs and harden merge report handlin and clean ci file ([52b7f4d](https://github.com/Kevin-Renault/Projet-7/commit/52b7f4dc5efa915dc3c5b586f02d7f02429f757c))
+* **ci:** centralize Docker image metadata and fix pulled-image validation ([c4b9981](https://github.com/Kevin-Renault/Projet-7/commit/c4b998151f76ed2aef20ff368434eacfb773779a))
+
+
+### Performance Improvements
+
+* **ci:** add timeouts to long-running workflow jobs ([9ae2e72](https://github.com/Kevin-Renault/Projet-7/commit/9ae2e72868283f4e0f374c7c9184ef9ee5a04e2f))
+* **ci:** cancel superseded workflow runs with concurrency ([1e88ca6](https://github.com/Kevin-Renault/Projet-7/commit/1e88ca65c01455a122333edc3e1e42b884c9843a))
+* **ci:** enable Buildx cache for release images ([96efd05](https://github.com/Kevin-Renault/Projet-7/commit/96efd053129322307ed777fad1a03d7aa3257a63))
+* **ci:** enable Gradle cache in sonar-analysis ([c0ef052](https://github.com/Kevin-Renault/Projet-7/commit/c0ef05210bde96a3a69aee3bc42651d29273de61))
+* **ci:** enable npm cache in release job ([affffd5](https://github.com/Kevin-Renault/Projet-7/commit/affffd59575b2ec5cff68692c07e9d230808e5c9))
 
 # [1.2.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v1.1.0...v1.2.0-dev.1) (2026-04-16)
 
