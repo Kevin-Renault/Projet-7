@@ -7,10 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 class PersonRepositoryIntegrationTest {
+
+    private static final String EMAIL = "jdoe@example.net";
+    private static final String FIRST_NAME = "John";
+    private static final String LAST_NAME = "Doe";
+    private static final String PHONE = "+1 (555) 123-4567";
+    private static final String BIO = "Developer";
 
     @Autowired
     private TestEntityManager entityManager;
@@ -18,17 +26,65 @@ class PersonRepositoryIntegrationTest {
     @Autowired
     private PersonRepository personRepository;
 
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    private Person createJohnDoe() {
+        Person person = new Person(FIRST_NAME, LAST_NAME, EMAIL);
+        person.setPhone(PHONE);
+        person.setBio(BIO);
+        return person;
+    }
+
+    private void assertJohnDoe(Person person) {
+        assertTrue(person.getId() > 0);
+        assertNotNull(person.getCreatedAt());
+        assertNotNull(person.getUpdatedAt());
+        assertEquals(FIRST_NAME, person.getFirstName());
+        assertEquals(LAST_NAME, person.getLastName());
+        assertEquals(EMAIL, person.getEmail());
+        assertEquals(PHONE, person.getPhone());
+        assertEquals(BIO, person.getBio());
+    }
+
     @Test
     void whenFindByEmail_thenReturnPerson() {
         // given
-        Person jdoe = new Person();
-        jdoe.setEmail("jdoe@example.net");
-        entityManager.persist(jdoe);
+        Person person = createJohnDoe();
+        personRepository.save(person);
         entityManager.flush();
 
         // when
-        Optional<Person> found = personRepository.findByEmail("jdoe@example.net");
+        Optional<Person> found = personRepository.findByEmail(EMAIL);
 
-        assertEquals(jdoe.getEmail(), found.get().getEmail());
+        assertTrue(found.isPresent());
+        assertJohnDoe(found.get());
     }
+
+    @Test
+    void createPerson_thenAddToOrganization() {
+        // given
+        Person person = createJohnDoe();
+        personRepository.save(person);
+        entityManager.flush();
+
+        Organization organization = new Organization();
+        organization.addPerson(person);
+        entityManager.persist(organization);
+        entityManager.flush();
+
+        // when
+        Optional<Person> persons = personRepository.findByEmail(EMAIL);
+
+        assertTrue(persons.isPresent());
+        assertJohnDoe(persons.get());
+
+        Organization organizationfromDb = organizationRepository.findById(organization.getId()).get();
+        organizationfromDb.getPersons().stream()
+                .filter(p -> p.getEmail().equals(EMAIL))
+                .findFirst()
+                .ifPresent(p -> assertEquals(FIRST_NAME, p.getFirstName()));
+
+    }
+
 }
