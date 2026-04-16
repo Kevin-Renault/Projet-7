@@ -1,4 +1,4 @@
-import { AsyncPipe, DatePipe, NgFor, NgIf } from '@angular/common';
+import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Person, PersonService } from '../person.service';
@@ -7,15 +7,15 @@ import { Organization, OrganizationService } from '../organization.service';
 @Component({
   selector: 'app-main-dashboard',
   standalone: true,
-  imports: [RouterLink, NgFor, NgIf, AsyncPipe, DatePipe],
+  imports: [RouterLink, NgFor, NgIf, DatePipe],
   templateUrl: './main-dashboard.component.html',
-  styleUrl: './main-dashboard.component.css'
+  styleUrls: ['./main-dashboard.component.css']
 })
 export class MainDashboardComponent implements OnInit {
   organizations: Organization[] = [];
   persons: Person[] = [];
 
-  constructor(private personService: PersonService, private organizationService: OrganizationService) { }
+  constructor(readonly personService: PersonService, readonly organizationService: OrganizationService) { }
 
 
   ngOnInit(): void {

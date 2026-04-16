@@ -8,6 +8,8 @@ class MicroCRMApplicationTests {
 
 	@Test
 	void contextLoads() {
+		// TODO: Replace this placeholder with a real context-load assertion or remove
+		// the test.
 	}
 
 }
