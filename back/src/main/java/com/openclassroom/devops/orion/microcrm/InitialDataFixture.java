@@ -2,20 +2,22 @@ package com.openclassroom.devops.orion.microcrm;
 
 import java.util.Arrays;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import ro.polak.springboot.datafixtures.DataFixture;
 import ro.polak.springboot.datafixtures.DataFixtureSet;
 
 @Component
 public class InitialDataFixture implements DataFixture {
 
-    @Autowired
-    private final PersonRepository personRepository = null;
+    private PersonRepository personRepository;
 
-    @Autowired
-    private final OrganizationRepository organizationRepository = null;
+    private OrganizationRepository organizationRepository;
+
+    public InitialDataFixture(PersonRepository personRepository,
+            OrganizationRepository organizationRepository) {
+        this.personRepository = personRepository;
+        this.organizationRepository = organizationRepository;
+    }
 
     @Override
     public boolean canBeLoaded() {

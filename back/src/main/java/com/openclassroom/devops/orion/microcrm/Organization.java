@@ -32,7 +32,7 @@ public class Organization {
 
   public List<Person> addPerson(Person person) {
     if (this.persons == null) {
-      this.persons = new ArrayList<Person>();
+      this.persons = new ArrayList<>();
     }
     this.persons.add(person);
     return this.persons;
@@ -40,7 +40,7 @@ public class Organization {
 
   public List<Person> removePerson(Person person) {
     if (this.persons == null) {
-      this.persons = new ArrayList<Person>();
+      this.persons = new ArrayList<>();
     }
     this.persons.remove(person);
     return this.persons;
@@ -79,6 +79,5 @@ public class Organization {
   public Date getUpdatedAt() {
     return updatedAt;
   }
-
 
 }

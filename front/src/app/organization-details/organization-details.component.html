@@ -1,4 +1,7 @@
-<form name="org" #orgForm="ngForm">
+<form
+  name="org"
+  #orgForm="ngForm"
+>
   <div>
     <div class="level">
       <div class="level-left">
@@ -29,9 +32,13 @@
     <div class="columns">
       <div class="column">
         <div class="field">
-          <label class="label">Name *</label>
+          <label
+            for="name"
+            class="label"
+          >Name *</label>
           <div class="control">
             <input
+              id="name"
               class="input {{
                 name.invalid && (name.dirty || name.touched) ? 'is-danger' : ''
               }}"
@@ -63,9 +70,7 @@
             <tbody>
               <tr *ngFor="let person of org.persons">
                 <td>
-                  <a [routerLink]="['/persons', person.id]"
-                    >{{ person.firstName }} {{ person.lastName }}</a
-                  >
+                  <a [routerLink]="['/persons', person.id]">{{ person.firstName }} {{ person.lastName }}</a>
                 </td>
                 <td>
                   {{ person.email }}
