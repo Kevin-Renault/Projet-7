@@ -1,23 +1,26 @@
   
-name: CI Modular # Nom du workflow affiché dans GitHub Actions
+name: CI Modular # Workflow principal de CI/CD affiché dans GitHub Actions
 
 env:
   # Force les actions JavaScript de GitHub à s'exécuter avec Node 24.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on: # Déclencheurs du workflow
-  push: # Sur chaque push
+  push: # Lance la CI à chaque push
     branches: [ '**' ] # Toutes les branches
-  pull_request: # Sur chaque pull request
+  pull_request: # Lance la CI à chaque pull request
     branches: [ '**' ] # Toutes les branches
 
+# Évite de garder plusieurs runs actifs pour la même branche ou la même PR :
+# un nouveau push ou une nouvelle mise à jour annule l'exécution précédente devenue obsolète.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-jobs: # Définition des jobs (briques)
-  setup: # Job d'initialisation, parent des autres jobs
+jobs: # Chaque job couvre une étape distincte de validation, build ou publication
+  setup: # Job d'initialisation qui prépare les valeurs partagées par les autres jobs
     runs-on: ubuntu-latest # OS utilisé pour ce job
+    # Ce job calcule une seule fois les références d'images réutilisées partout dans la pipeline.
     outputs:
       repo_lower: ${{ steps.meta.outputs.repo_lower }}
       image_tag: ${{ steps.meta.outputs.image_tag }}
@@ -34,7 +37,7 @@ jobs: # Définition des jobs (briques)
           echo "backend_image=ghcr.io/$REPO_LOWER/backend:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
           echo "frontend_image=ghcr.io/$REPO_LOWER/frontend:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
-  # Lance les tests unitaires backend et frontend via le script partagé.
+  # Exécute toute la batterie de tests backend et frontend avant les scans et les builds.
   test-application:
     runs-on: ubuntu-latest
     needs: setup
@@ -72,6 +75,7 @@ jobs: # Définition des jobs (briques)
         run: chmod +x ./run-tests.sh
       - name: Run all tests (backend & frontend)
         run: ./run-tests.sh
+      # Les rapports de test alimentent Sonar et le résumé lisible de fin de workflow.
       - name: Upload all JUnit test results
         uses: actions/upload-artifact@v4
         with:
@@ -110,6 +114,7 @@ jobs: # Définition des jobs (briques)
       - name: Compile backend classes
         working-directory: back
         run: ./gradlew compileJava testClasses
+      # Sonar utilise les classes compilées et la couverture pour évaluer la qualité du code.
       - name: Run SonarQube scan
         uses: sonarsource/sonarqube-scan-action@v2
         env:
@@ -134,6 +139,7 @@ jobs: # Définition des jobs (briques)
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.ACTIONS_TOKEN }}
+      # Construit et pousse l'image candidate backend utilisée ensuite pour la validation Docker.
       - name: Build and push backend image
         run: |
           docker buildx build \
@@ -161,6 +167,7 @@ jobs: # Définition des jobs (briques)
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.ACTIONS_TOKEN }}
+      # Construit et pousse l'image candidate frontend utilisée ensuite pour les tests d'intégration.
       - name: Build and push frontend image
         run: |
           docker buildx build \
@@ -193,7 +200,7 @@ jobs: # Définition des jobs (briques)
       - name: Pull backend image
         run: docker pull "$BACKEND_IMAGE"
       
-      # Adapter le docker-compose.yml pour utiliser l'image $BACKEND_IMAGE
+      # Relance le backend candidat via docker compose et attend que le healthcheck passe.
       - name: Validate backend with docker-compose
         run: |
           BACKEND_IMAGE="$BACKEND_IMAGE" docker compose -f docker-compose.yml up -d back
@@ -214,7 +221,7 @@ jobs: # Définition des jobs (briques)
           docker compose down
           exit 1
           
-  # Reconstruit le frontend en image Docker avant la validation locale.*
+  # Vérifie le frontend candidat dans un environnement Docker proche du vrai usage.
   validate-docker-frontend-with-pulled-image:
     runs-on: ubuntu-latest
     needs: [setup, build-and-push-backend, build-and-push-frontend]
@@ -241,7 +248,7 @@ jobs: # Définition des jobs (briques)
       - name: Pull frontend image
         run: docker pull "$FRONTEND_IMAGE"
 
-      # Vérifie que Nginx sert bien le front sur http://localhost.
+      # Vérifie le front dans son contexte complet avec le backend déjà validé.
       - name: Validate frontend with docker-compose
         run: |
           BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" docker compose -f docker-compose.yml up -d front
@@ -266,18 +273,19 @@ jobs: # Définition des jobs (briques)
           exit 1
 
 
-  # Publie uniquement après succès des validations backend et frontend.
+  # Ne publie les artefacts finaux qu'après validation qualité et validation Docker.
   release:
     runs-on: ubuntu-latest
+    # La publication finale ne démarre que si Sonar et les validations Docker sont tous au vert.
     needs: [setup, sonar-analysis, validate-docker-backend-with-pulled-image, validate-docker-frontend-with-pulled-image]
     timeout-minutes: 5
-    # La release ne part que sur push vers main ou dev.
+    # La release ne part que sur un push vers main ou dev.
     if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev')
     permissions:
       contents: write
       packages: write
     env:
-      # Variables partagées par semantic-release et les étapes de publication.
+      # Variables de travail partagées entre semantic-release, npm et Gradle.
       ANGULAR_DIR: front
       JAVA_DIR: back
       RELEASE_VERSION: ''
@@ -304,17 +312,17 @@ jobs: # Définition des jobs (briques)
           cache: npm
           cache-dependency-path: front/package-lock.json
 
-      # Installe semantic-release et ses plugins pour calculer la prochaine version.
+      # semantic-release calcule la prochaine version officielle et prépare la suite du job.
       - name: Install dependencies
         run: npm install --global semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github @semantic-release/commit-analyzer @semantic-release/exec @semantic-release/release-notes-generator
 
-      # Déclenche la génération de version et renseigne RELEASE_VERSION.
+      # Déclenche le calcul de version et renseigne RELEASE_VERSION pour les étapes suivantes.
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         run: npx semantic-release
 
-      # Prépare le scope npm, le tag et le nom du package frontend à publier.
+      # Prépare le scope npm, le tag et le nom du package frontend avant publication.
       - name: Prepare release metadata
         if: env.RELEASE_VERSION != ''
         run: |
@@ -329,13 +337,13 @@ jobs: # Définition des jobs (briques)
           echo "FRONTEND_PACKAGE_NAME=${FRONTEND_PACKAGE_NAME}" >> "$GITHUB_ENV"
           echo "NPM_DIST_TAG=${NPM_DIST_TAG}" >> "$GITHUB_ENV"
 
-      # Réinstalle les dépendances frontend avec la version de release avant publication.
+      # Réinstalle les dépendances frontend avec l'état exact attendu pour publier.
       - name: Install frontend dependencies
         if: env.RELEASE_VERSION != ''
         working-directory: ${{ env.ANGULAR_DIR }}
         run: npm ci
 
-      # Publie le package frontend sur GitHub Packages.
+      # Le package frontend n'est publié que si semantic-release a bien produit une version.
       - name: Publish frontend package to GitHub Packages
         if: env.RELEASE_VERSION != ''
         working-directory: ${{ env.ANGULAR_DIR }}
@@ -349,13 +357,13 @@ jobs: # Définition des jobs (briques)
           echo "Publishing frontend package: ${GITHUB_PACKAGES_SCOPE}/${FRONTEND_PACKAGE_NAME}@${RELEASE_VERSION} with npm tag ${NPM_DIST_TAG}"
           npm publish --tag "${NPM_DIST_TAG}"
 
-      # Rend le wrapper Gradle exécutable avant la publication Maven.
+      # Rend le wrapper Gradle exécutable avant la publication Maven du backend.
       - name: Make Gradle wrapper executable
         if: env.RELEASE_VERSION != ''
         working-directory: ${{ env.JAVA_DIR }}
         run: chmod +x ./gradlew
 
-      # Publie le backend sur GitHub Packages via Gradle.
+      # Le backend est publié séparément sur GitHub Packages pour garder un artefact bien identifié.
       - name: Publish backend package to GitHub Packages
         if: env.RELEASE_VERSION != ''
         working-directory: ${{ env.JAVA_DIR }}
@@ -363,7 +371,7 @@ jobs: # Définition des jobs (briques)
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         run: ./gradlew publishMavenPublicationToGitHubPackagesRepository
 
-      # Prépare l'authentification pour pousser les images Docker de release.
+      # Prépare l'authentification GHCR pour pousser les images Docker de release.
       - name: Log in to GitHub Container Registry
         if: env.RELEASE_VERSION != ''
         uses: docker/login-action@v3
@@ -372,12 +380,12 @@ jobs: # Définition des jobs (briques)
           username: ${{ github.actor }}
           password: ${{ secrets.ACTIONS_TOKEN }}
 
-      # Active Buildx pour les images de release.
+      # Active Buildx pour construire et pousser les images de release.
       - name: Set up Docker Buildx
         if: env.RELEASE_VERSION != ''
         uses: docker/setup-buildx-action@v3
 
-      # Pousse l'image backend taguée avec la version semver.
+      # Seules les images versionnées sont considérées comme des livrables finaux.
       - name: Build and push backend release image
         if: env.RELEASE_VERSION != ''
         uses: docker/build-push-action@v5
@@ -390,7 +398,7 @@ jobs: # Définition des jobs (briques)
           push: true
           tags: ghcr.io/${{ env.REPO_LOWER }}/backend:v${{ env.RELEASE_VERSION }}
 
-      # Pousse l'image frontend taguée avec la version semver.
+      # L'image frontend de release suit la même règle que le backend.
       - name: Build and push frontend release image
         if: env.RELEASE_VERSION != ''
         uses: docker/build-push-action@v5
@@ -408,14 +416,14 @@ jobs: # Définition des jobs (briques)
     needs: [test-application, sonar-analysis]
     if: always()
     steps:
-      # Récupère les rapports produits par les tests unitaires pour le résumé final.
+      # Récupère les rapports produits par les tests pour afficher un résumé final lisible.
       - name: Download test results artifact
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: test-results-all
           path: test-results
-      # Vérifie que les fichiers de résultats sont bien présents.
+      # Vérifie que les fichiers de résultats ont bien été téléchargés.
       - name: Show test-results content
         run: |
           if [ -d test-results ]; then
@@ -435,6 +443,7 @@ jobs: # Définition des jobs (briques)
 
   cleanup-candidate-images:
     runs-on: ubuntu-latest
+    # Le nettoyage final supprime uniquement les images candidates temporaires, pas les images de release.
     needs: [setup, sonar-analysis, validate-docker-backend-with-pulled-image, validate-docker-frontend-with-pulled-image, release]
     if: always()
     permissions:
@@ -444,6 +453,7 @@ jobs: # Définition des jobs (briques)
       - name: Warn if cleanup token is missing
         run: echo "Candidate image cleanup requires a PAT with read:packages and delete:packages scopes."
 
+      # Supprime les tags techniques du SHA courant pour garder GHCR propre.
       - name: Delete candidate backend and frontend images from GHCR
         uses: actions/github-script@v7
         env:
