@@ -1,3 +1,21 @@
+# [1.2.0-dev.2](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.0-dev.1...v1.2.0-dev.2) (2026-04-16)
+
+
+### Bug Fixes
+
+* **back:** remove UnsupportedOperationException ([94dccca](https://github.com/Kevin-Renault/Projet-7/commit/94dcccaf7672bfe79fa8cd1eab611ff1c226f78c))
+* **back:** use constructor injection in initial data fixture ([e6d8c33](https://github.com/Kevin-Renault/Projet-7/commit/e6d8c33f519d48168023f30f3c6dc6c7b744ae0d))
+* **front:** associate organization name label with input ([0e351d6](https://github.com/Kevin-Renault/Projet-7/commit/0e351d6d07184691ead1561810332d7b1573d7ba))
+* **front:** remove invalid await usage in organization service ([eb5695d](https://github.com/Kevin-Renault/Projet-7/commit/eb5695d7777eb5ebd2df8319befd7bf6e44be6c7))
+* **front:** remove invalid await usage in person servic ([dae3942](https://github.com/Kevin-Renault/Projet-7/commit/dae39422318ea028fc30269562054d2eee6caa8c))
+* **sonar:** accessibility + htmlt indentation ([7a9d447](https://github.com/Kevin-Renault/Projet-7/commit/7a9d447a2b586d5065b0a068a528b0d1f869bc49))
+* **sonar:** remove unused import ([95a8c0b](https://github.com/Kevin-Renault/Projet-7/commit/95a8c0b4d2de49c08c79004843878b18de6fa66b))
+* **sonar:** remove unused import and make readonly parameter ([3792c8e](https://github.com/Kevin-Renault/Projet-7/commit/3792c8eea3338d4c4d93cba18950216b6aa01d70))
+* **sonar:** remove unused import and make readonly parameter ([ee190aa](https://github.com/Kevin-Renault/Projet-7/commit/ee190aa5b78e78c5dced530b8944c40e985864e4))
+* **sonar:** remove unused import and make readonly parameter and async method ([a1ed87f](https://github.com/Kevin-Renault/Projet-7/commit/a1ed87f4dd68d2616b15aceece9b9cd76b815b8e))
+* **sonar:** use diamond operator for generic instantiation ([9da7229](https://github.com/Kevin-Renault/Projet-7/commit/9da7229d6a6e89994faacbc25d52d6230455c0b3))
+* **test:** mark placeholder context test as unsupported ([deb06ff](https://github.com/Kevin-Renault/Projet-7/commit/deb06ff6ac90014342b0fc8b6f80db3adec6481d))
+
 # [1.2.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v1.1.0...v1.2.0-dev.1) (2026-04-16)
 
 
