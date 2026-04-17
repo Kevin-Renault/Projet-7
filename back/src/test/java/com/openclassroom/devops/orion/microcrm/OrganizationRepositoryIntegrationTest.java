@@ -86,10 +86,9 @@ class OrganizationRepositoryIntegrationTest {
     void createOrganization_thenAddPerson_thenRemove() {
         // given: on crée une organisation vide en base pour tester l'association avec
         // une personne.
-        Organization organization = new Organization();
-        entityManager.persist(organization);
+        Organization organization = createOrganization();
+        organizationRepository.save(organization);
         entityManager.flush();
-
         // given: on prépare une personne réutilisable pour la relation ManyToMany.
         Person person = createJohnDoe();
         personRepository.save(person);
