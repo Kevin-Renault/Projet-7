@@ -1,3 +1,10 @@
+## [1.2.4](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.3...v1.2.4) (2026-04-17)
+
+
+### Bug Fixes
+
+* **front:** generate lcov coverage for sonar ([83d6c23](https://github.com/Kevin-Renault/Projet-7/commit/83d6c239556f2626cab2cbdc6e414e583ec96f38))
+
 ## [1.2.3](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.2...v1.2.3) (2026-04-17)
 
 
