@@ -1,3 +1,10 @@
+## [1.2.3-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.2...v1.2.3-dev.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* **test:** add db refresh for person remove ([eb63d72](https://github.com/Kevin-Renault/Projet-7/commit/eb63d7297ed59b789194a1c789ec26160b7d79f9))
+
 ## [1.2.2](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.1...v1.2.2) (2026-04-17)
 
 
