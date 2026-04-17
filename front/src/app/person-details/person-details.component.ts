@@ -9,8 +9,7 @@ import { Organization, OrganizationService } from '../organization.service';
   selector: 'app-person-details',
   standalone: true,
   imports: [NgIf, FormsModule, NgFor, RouterLink],
-  templateUrl: './person-details.component.html',
-  styleUrls: ['./person-details.component.css']
+  templateUrl: './person-details.component.html'
 })
 export class PersonDetailsComponent implements OnInit {
   person: Person = {
