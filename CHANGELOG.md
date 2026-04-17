@@ -1,9 +1,14 @@
-# [2.0.0-dev.2](https://github.com/Kevin-Renault/Projet-7/compare/v2.0.0-dev.1...v2.0.0-dev.2) (2026-04-17)
+# [2.0.0](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.4...v2.0.0) (2026-04-17)
 
 
-### Bug Fixes
+### Features
 
-* **front:** link published package to repository ([8d99bff](https://github.com/Kevin-Renault/Projet-7/commit/8d99bffbb0d5c4f61089d0d1a1510ddc15ba7bad))
+* trigger major version bump ([340be70](https://github.com/Kevin-Renault/Projet-7/commit/340be704447c188cf35e0dbc77cc9aa895d5532e))
+
+
+### BREAKING CHANGES
+
+* trigger major version bump
 
 ## [1.2.4](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.3...v1.2.4) (2026-04-17)
 
