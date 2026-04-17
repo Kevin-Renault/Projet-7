@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -62,7 +63,7 @@ class PersonRepositoryIntegrationTest {
     }
 
     @Test
-    void createPerson_thenAddToOrganization() {
+    void createPerson_thenAddToOrganization_thenRemove() {
         // given
         Person person = createJohnDoe();
         personRepository.save(person);
@@ -84,6 +85,12 @@ class PersonRepositoryIntegrationTest {
                 .filter(p -> p.getEmail().equals(EMAIL))
                 .findFirst()
                 .ifPresent(p -> assertEquals(FIRST_NAME, p.getFirstName()));
+
+        organizationfromDb.removePerson(person);
+        entityManager.flush();
+
+        assertFalse(organizationfromDb.getPersons().stream()
+                .anyMatch(p -> p.getEmail().equals(EMAIL)));
 
     }
 
