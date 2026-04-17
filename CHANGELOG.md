@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.1...v1.2.2) (2026-04-17)
+
+
+### Bug Fixes
+
+* **test:** assert name bug ([f8493f7](https://github.com/Kevin-Renault/Projet-7/commit/f8493f7d7592d9010e03e2ba8f63d47a7021fa5a))
+
 ## [1.2.2-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.1...v1.2.2-dev.1) (2026-04-17)
 
 
