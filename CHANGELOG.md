@@ -1,3 +1,10 @@
+## [2.0.1-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v2.0.0...v2.0.1-dev.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* **front:** link published package to repository ([8d99bff](https://github.com/Kevin-Renault/Projet-7/commit/8d99bffbb0d5c4f61089d0d1a1510ddc15ba7bad))
+
 # [2.0.0](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.4...v2.0.0) (2026-04-17)
 
 
