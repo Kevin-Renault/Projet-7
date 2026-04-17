@@ -1,3 +1,15 @@
+# [2.0.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.4-dev.1...v2.0.0-dev.1) (2026-04-17)
+
+
+### Features
+
+* trigger major version bump ([340be70](https://github.com/Kevin-Renault/Projet-7/commit/340be704447c188cf35e0dbc77cc9aa895d5532e))
+
+
+### BREAKING CHANGES
+
+* trigger major version bump
+
 ## [1.2.4-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v1.2.3...v1.2.4-dev.1) (2026-04-17)
 
 
