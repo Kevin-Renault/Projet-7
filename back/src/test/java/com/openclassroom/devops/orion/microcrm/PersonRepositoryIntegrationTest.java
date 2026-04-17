@@ -86,10 +86,14 @@ class PersonRepositoryIntegrationTest {
                 .findFirst()
                 .ifPresent(p -> assertEquals(FIRST_NAME, p.getFirstName()));
 
-        organizationfromDb.removePerson(person);
+        entityManager.clear();
+        Person personFromDb = personRepository.findByEmail(EMAIL).orElseThrow();
+        personRepository.delete(personFromDb);
         entityManager.flush();
 
-        assertFalse(organizationfromDb.getPersons().stream()
+        Organization reloadedOrganization = organizationRepository.findById(organization.getId()).orElseThrow();
+
+        assertFalse(reloadedOrganization.getPersons().stream()
                 .anyMatch(p -> p.getEmail().equals(EMAIL)));
 
     }
