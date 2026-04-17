@@ -14,22 +14,19 @@ public class Organization extends AuditableEntity {
   private List<Person> persons;
 
   public List<Person> addPerson(Person person) {
-    if (this.persons == null) {
-      this.persons = new ArrayList<>();
-    }
-    this.persons.add(person);
-    return this.persons;
+    getPersons().add(person);
+    return getPersons();
   }
 
   public List<Person> removePerson(Person person) {
-    if (this.persons == null) {
-      this.persons = new ArrayList<>();
-    }
-    this.persons.remove(person);
-    return this.persons;
+    getPersons().remove(person);
+    return getPersons();
   }
 
   public List<Person> getPersons() {
+    if (this.persons == null) {
+      this.persons = new ArrayList<>();
+    }
     return persons;
   }
 
