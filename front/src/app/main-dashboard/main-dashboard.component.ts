@@ -8,8 +8,7 @@ import { Organization, OrganizationService } from '../organization.service';
   selector: 'app-main-dashboard',
   standalone: true,
   imports: [RouterLink, NgFor, NgIf, DatePipe],
-  templateUrl: './main-dashboard.component.html',
-  styleUrls: ['./main-dashboard.component.css']
+  templateUrl: './main-dashboard.component.html'
 })
 export class MainDashboardComponent implements OnInit {
   organizations: Organization[] = [];

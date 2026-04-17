@@ -291,6 +291,8 @@ jobs: # Chaque job couvre une étape distincte de validation, build ou publicati
       RELEASE_VERSION: ''
       NPM_DIST_TAG: latest
       REPO_LOWER: ${{ needs.setup.outputs.repo_lower }}
+      BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
+      FRONTEND_IMAGE: ${{ needs.setup.outputs.frontend_image }}
       GITHUB_PACKAGES_SCOPE: ''
       FRONTEND_PACKAGE_NAME: ''
     steps:
@@ -380,36 +382,31 @@ jobs: # Chaque job couvre une étape distincte de validation, build ou publicati
           username: ${{ github.actor }}
           password: ${{ secrets.ACTIONS_TOKEN }}
 
-      # Active Buildx pour construire et pousser les images de release.
-      - name: Set up Docker Buildx
+      # Réutilise l'image candidate backend déjà validée, puis la republie avec le tag de release.
+      - name: Pull backend candidate image
         if: env.RELEASE_VERSION != ''
-        uses: docker/setup-buildx-action@v3
+        run: docker pull "${BACKEND_IMAGE}"
 
-      # Seules les images versionnées sont considérées comme des livrables finaux.
-      - name: Build and push backend release image
+      - name: Tag backend image for release
         if: env.RELEASE_VERSION != ''
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          target: back
-          cache-from: type=gha,scope=back
-          cache-to: type=gha,mode=max,scope=back
-          push: true
-          tags: ghcr.io/${{ env.REPO_LOWER }}/backend:v${{ env.RELEASE_VERSION }}
+        run: docker tag "${BACKEND_IMAGE}" "ghcr.io/${REPO_LOWER}/backend:v${RELEASE_VERSION}"
 
-      # L'image frontend de release suit la même règle que le backend.
-      - name: Build and push frontend release image
+      - name: Push backend release image
         if: env.RELEASE_VERSION != ''
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          target: front
-          cache-from: type=gha,scope=front
-          cache-to: type=gha,mode=max,scope=front
-          push: true
-          tags: ghcr.io/${{ env.REPO_LOWER }}/frontend:v${{ env.RELEASE_VERSION }}
+        run: docker push "ghcr.io/${REPO_LOWER}/backend:v${RELEASE_VERSION}"
+
+      # Réutilise l'image candidate frontend déjà validée, puis la republie avec le tag de release.
+      - name: Pull frontend candidate image
+        if: env.RELEASE_VERSION != ''
+        run: docker pull "${FRONTEND_IMAGE}"
+
+      - name: Tag frontend image for release
+        if: env.RELEASE_VERSION != ''
+        run: docker tag "${FRONTEND_IMAGE}" "ghcr.io/${REPO_LOWER}/frontend:v${RELEASE_VERSION}"
+
+      - name: Push frontend release image
+        if: env.RELEASE_VERSION != ''
+        run: docker push "ghcr.io/${REPO_LOWER}/frontend:v${RELEASE_VERSION}"
          
   merge-report:
     runs-on: ubuntu-latest

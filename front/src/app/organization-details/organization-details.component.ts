@@ -9,8 +9,7 @@ import { Organization, OrganizationService } from '../organization.service';
   selector: 'app-organization-details',
   standalone: true,
   imports: [NgIf, FormsModule, NgFor, RouterLink, DatePipe],
-  templateUrl: './organization-details.component.html',
-  styleUrls: ['./organization-details.component.css']
+  templateUrl: './organization-details.component.html'
 })
 export class OrganizationDetailsComponent implements OnInit {
   org: Organization = {
