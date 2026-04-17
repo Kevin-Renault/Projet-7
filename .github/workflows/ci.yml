@@ -291,6 +291,8 @@ jobs: # Chaque job couvre une étape distincte de validation, build ou publicati
       RELEASE_VERSION: ''
       NPM_DIST_TAG: latest
       REPO_LOWER: ${{ needs.setup.outputs.repo_lower }}
+      BACKEND_IMAGE: ${{ needs.setup.outputs.backend_image }}
+      FRONTEND_IMAGE: ${{ needs.setup.outputs.frontend_image }}
       GITHUB_PACKAGES_SCOPE: ''
       FRONTEND_PACKAGE_NAME: ''
     steps:
