@@ -179,3 +179,19 @@ docker run -it --rm -p 8080:8080 -p 80:80 -p 443:443 orion-microcrm-standalone:l
 ```
 
 L'application sera disponible sur https://localhost et l'API sur http://localhost:8080.
+
+### Stack ELK locale
+
+Pour centraliser les logs applicatifs en local, lancer d'abord la stack ELK dédiée :
+
+```shell
+docker compose -f docker-compose-elk.yml up -d
+```
+
+Puis démarrer l'application avec le compose principal :
+
+```shell
+docker compose up -d --build
+```
+
+Les logs JSON du back sont envoyés à Logstash quand le profil `elk` est actif. Kibana est ensuite disponible sur http://localhost:5601.

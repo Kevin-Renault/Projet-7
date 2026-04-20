@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="microcrm"/>
+    <springProperty scope="context" name="LOGSTASH_HOST" source="elk.logstash.host" defaultValue="localhost"/>
+    <springProperty scope="context" name="LOGSTASH_PORT" source="elk.logstash.port" defaultValue="5000"/>
 
     <property name="LOG_LEVEL_PATTERN" value="%5p"/>
 
@@ -12,9 +14,27 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-    </root>
+    <springProfile name="!elk">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="elk">
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"service":"${APP_NAME}"}</customFields>
+                <includeMdc>true</includeMdc>
+                <includeContext>true</includeContext>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="LOGSTASH"/>
+        </root>
+    </springProfile>
 
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.hibernate" level="WARN"/>
