@@ -4,6 +4,12 @@ services:
     image: ${BACKEND_IMAGE:-}
     build:
       context: ./${JAVA_DIR}
+    environment:
+      SPRING_PROFILES_ACTIVE: elk
+      ELK_LOGSTASH_HOST: host.docker.internal
+      ELK_LOGSTASH_PORT: 5000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8080:8080"
     healthcheck:
