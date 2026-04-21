@@ -132,6 +132,19 @@ La CI utilise maintenant SonarCloud (`https://sonarcloud.io`) plutôt qu'un serv
 
 L'analyse couvre le backend et le frontend dans un seul projet SonarQube.
 
+### Points critiques relevés et corrigés
+
+- Côté front, les ressources CSS et les assets de production sont maintenant fingerprintés avec un hash grâce à `outputHashing: all` dans le build Angular.
+- Ce point était critique pour éviter la persistance de fichiers CSS obsolètes après déploiement et limiter les comportements incohérents liés au cache navigateur ou au cache CDN.
+- La correction est appliquée au build de production du frontend, ce qui garantit des noms de fichiers uniques à chaque nouvelle version.
+
+### Préconisations d'usage
+
+- Préférer une architecture multi-couche côté back, avec séparation entre API, service métier et persistance.
+- Ajouter un handler global pour les erreurs côté backend afin de centraliser les réponses d'erreur et éviter les retours incohérents.
+- Valider les données d'entrée au plus tôt, par exemple avec des contraintes Bean Validation sur les DTO ou les entités exposées.
+- Conserver les logs métier et les logs techniques séparés pour faciliter le diagnostic dans ELK et dans la CI.
+
 ### Images Docker
 
 #### Client

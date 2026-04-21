@@ -1,6 +1,6 @@
 # Plan de testing périodique, de sécurité et de conteneurisation
 
-Ce document formalise les règles d'automatisation du projet MicroCRM avant la mise en œuvre technique du pipeline.
+Ce document formalise les règles d'automatisation du projet MicroCRM et reflète l'état actuel du dépôt.
 
 ## 1. Plan de testing périodique
 
@@ -18,7 +18,8 @@ Garantir la validation continue du comportement attendu de l'application, la non
 
 - **À chaque `push`** sur une branche de travail.
 - **À chaque `pull request`** avant fusion.
-- **De manière périodique sur la branche principale** : cette règle est prévue dans la stratégie de test, mais elle n'est pas encore activée dans le workflow actuel.
+- **De manière périodique sur la branche principale** : un workflow dédié exécute un contrôle bihebdomadaire sur `main`.
+- **De manière périodique sur la branche `dev`** : un second contrôle planifié relance la suite de tests sur `dev`.
 - **Évolutif** : si le besoin se confirme, une planification de type nightly ou hebdomadaire pourra être ajoutée plus tard pour refaire un contrôle complet.
 
 ### Règles retenues
@@ -26,7 +27,8 @@ Garantir la validation continue du comportement attendu de l'application, la non
 - Les dépendances doivent être installées avant l'exécution des tests.
 - Les tests doivent être lancés avant toute étape de build d'image ou de publication.
 - Les résultats des tests doivent être archivés comme artefacts de CI pour pouvoir être consultés après exécution.
-- Les exécutions périodiques sur la branche principale sont un objectif de gouvernance, pas encore une automatisation effective dans le dépôt.
+- La suite de tests commune est factorisée dans une action composite réutilisée par la CI et par le workflow périodique.
+- Les exécutions périodiques sur `main` et `dev` sont désormais automatisées dans le dépôt.
 
 ### Indicateurs attendus
 
@@ -62,6 +64,11 @@ SonarQube Cloud est utilisé comme analyseur qualité et sécurité du code sour
 - Donner un signal rapide sur la qualité du code avant toute mise en production.
 - Maintenir un niveau de dette technique compatible avec un projet maintenable.
 
+### État actuel
+
+- Le plan de sécurité est documenté dans ce fichier.
+- L'analyse qualité et sécurité reste assurée par SonarQube Cloud dans la CI principale.
+
 ## 3. Principes de conteneurisation et de déploiement
 
 ### Rôle des Dockerfiles existants
@@ -93,6 +100,7 @@ Le rôle de Docker Compose est de :
 - Valider ces images dans des conteneurs proches du contexte réel d'utilisation.
 - Publier les images versionnées uniquement si les contrôles bloquants sont validés.
 - Utiliser des tags d'images candidats temporaires pour la validation, puis des tags de release pour les livrables officiels.
+- Réutiliser la même suite de tests applicatifs dans la CI principale et dans le workflow périodique.
 
 ### Points de vigilance
 
@@ -112,3 +120,10 @@ Cette stratégie d'automatisation repose sur l'enchaînement suivant :
 5. publication des images versionnées si tout est conforme.
 
 L'objectif est de garantir un pipeline simple, reproductible et cohérent avec les exigences du projet full-stack Java / Angular.
+
+## 5. État d'avancement
+
+- Le workflow de CI principal est présent dans `.github/workflows/ci.yml`.
+- Le workflow périodique est présent dans `.github/workflows/periodic-tests.yml`.
+- La suite de tests commune est factorisée dans `.github/actions/run-test-suite/action.yml`.
+- Le plan de conteneurisation est opérationnel avec `Dockerfile`, `docker-compose.yml` et `docker-compose-elk.yml`.
