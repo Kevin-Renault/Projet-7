@@ -102,6 +102,13 @@ Le rôle de Docker Compose est de :
 - Utiliser des tags d'images candidats temporaires pour la validation, puis des tags de release pour les livrables officiels.
 - Réutiliser la même suite de tests applicatifs dans la CI principale et dans le workflow périodique.
 
+### Monitoring côté front: périmètre minimal
+
+- Capturer les erreurs globales Angular avec un gestionnaire d'erreurs.
+- Tracer les appels HTTP utiles avec un interceptor, en limitant les données sensibles.
+- Remonter uniquement les événements utiles au diagnostic, comme les échecs de chargement ou de validation.
+- Conserver un format de log cohérent avec le back pour pouvoir l'exploiter dans ELK.
+
 ### Points de vigilance
 
 - Les versions des images doivent rester cohérentes entre backend, frontend et monitoring.
