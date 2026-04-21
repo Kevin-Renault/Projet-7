@@ -45,3 +45,4 @@ sonarlint_vscode_logs.txt
 # Misc
 run-tests.sh.bak
 TODO.md
+back/ELK_LOGS.md
