@@ -1,0 +1,52 @@
+name: Periodic Tests
+
+on:
+  schedule:
+    - cron: '0 20 * * 0' # dimanche 20:00 UTC
+    - cron: '0 20 */2 * *' # tous les 2 jours à 20:00 UTC (approximation 48h)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  main-biweekly-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' && github.event.schedule == '0 20 * * 0'
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Keep only even ISO weeks
+        id: week_gate
+        run: |
+          WEEK_NUMBER=$(date +%V)
+          if [ $((10#$WEEK_NUMBER % 2)) -ne 0 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Semaine impaire : contrôle périodique ignoré."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Semaine paire : contrôle périodique exécuté."
+          fi
+
+      - name: Run shared test suite
+        if: steps.week_gate.outputs.skip == 'false'
+        uses: ./.github/actions/run-test-suite
+
+  dev-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' && github.event.schedule == '0 20 */2 * *'
+    timeout-minutes: 10
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Run shared test suite
+        uses: ./.github/actions/run-test-suite
