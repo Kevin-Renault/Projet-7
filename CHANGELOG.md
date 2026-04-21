@@ -1,3 +1,10 @@
+# [2.1.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v2.0.1-dev.1...v2.1.0-dev.1) (2026-04-21)
+
+
+### Features
+
+* **ci:** add periodic test workflow for main and dev ([45a08e0](https://github.com/Kevin-Renault/Projet-7/commit/45a08e0f15f57709fb01080f70659046a751ebe4))
+
 ## [2.0.1-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v2.0.0...v2.0.1-dev.1) (2026-04-17)
 
 
