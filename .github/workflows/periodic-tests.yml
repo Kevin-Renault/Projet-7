@@ -1,0 +1,108 @@
+name: Periodic Tests
+
+on:
+  schedule:
+    - cron: '0 20 * * 0' # dimanche 20:00 UTC
+    - cron: '0 20 */2 * *' # tous les 2 jours à 20:00 UTC (approximation 48h)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  main-biweekly-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' && github.event.schedule == '0 20 * * 0'
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Keep only even ISO weeks
+        id: week_gate
+        run: |
+          WEEK_NUMBER=$(date +%V)
+          if [ $((10#$WEEK_NUMBER % 2)) -ne 0 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Semaine impaire : contrôle périodique ignoré."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Semaine paire : contrôle périodique exécuté."
+          fi
+
+      - name: Set up Java with Gradle cache
+        if: steps.week_gate.outputs.skip == 'false'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Set up Node.js with npm cache
+        if: steps.week_gate.outputs.skip == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+
+      - name: Install Google Chrome
+        if: steps.week_gate.outputs.skip == 'false'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Set CHROME_BIN env variable
+        if: steps.week_gate.outputs.skip == 'false'
+        run: echo "CHROME_BIN=$(which google-chrome)" >> $GITHUB_ENV
+
+      - name: Run tests for main branch
+        if: steps.week_gate.outputs.skip == 'false'
+        run: ./run-tests.sh
+
+  dev-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' && github.event.schedule == '0 20 */2 * *'
+    timeout-minutes: 10
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Set up Java with Gradle cache
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Set up Node.js with npm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+
+      - name: Install Google Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Set CHROME_BIN env variable
+        run: echo "CHROME_BIN=$(which google-chrome)" >> $GITHUB_ENV
+
+      - name: Run tests for dev branch
+        run: ./run-tests.sh
