@@ -1,0 +1,55 @@
+name: Run test suite
+description: Set up Java, Node.js and Chrome, then run the full backend and frontend test suite.
+runs:
+  using: composite
+  steps:
+    - name: Set up Java with Gradle cache
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: '21'
+        cache: gradle
+
+    - name: Set up Node.js with npm cache
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+        cache: npm
+        cache-dependency-path: front/package-lock.json
+
+    - name: Install Google Chrome
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget gnupg
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+
+    - name: Set CHROME_BIN env variable
+      shell: bash
+      run: echo "CHROME_BIN=$(which google-chrome)" >> "$GITHUB_ENV"
+
+    - name: Ensure run-tests.sh is executable
+      shell: bash
+      run: chmod +x ./run-tests.sh
+
+    - name: Run all tests (backend & frontend)
+      shell: bash
+      run: ./run-tests.sh
+
+    - name: Upload all JUnit test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-all
+        path: test-results/*.xml
+
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-reports
+        path: |
+          back/build/reports/jacoco/test/jacocoTestReport.xml
+          front/coverage/**/lcov.info
+        if-no-files-found: error
