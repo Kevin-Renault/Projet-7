@@ -3,7 +3,9 @@ services:
     container_name: workshop-back
     image: ${BACKEND_IMAGE:-}
     build:
-      context: ./${JAVA_DIR}
+      context: .
+      dockerfile: Dockerfile
+      target: back
     environment:
       SPRING_PROFILES_ACTIVE: elk
       ELK_LOGSTASH_HOST: host.docker.internal
@@ -22,7 +24,9 @@ services:
     container_name: workshop-front
     image: ${FRONTEND_IMAGE:-}
     build:
-      context: ./${ANGULAR_DIR}
+      context: .
+      dockerfile: Dockerfile
+      target: front
     ports:
       - "80:80"
     depends_on:
