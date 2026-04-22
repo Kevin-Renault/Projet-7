@@ -20,7 +20,8 @@ class EndpointRequestLoggingFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/actuator/health");
+        String requestUri = request.getRequestURI();
+        return requestUri.startsWith("/actuator/health") || requestUri.startsWith("/api/telemetry/front-logs");
     }
 
     @Override
