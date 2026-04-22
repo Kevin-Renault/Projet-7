@@ -224,3 +224,17 @@ Une fois Kibana ouvert, cliquer sur **Explore on my own**, puis :
 Ensuite, utiliser **Discover** pour consulter les logs bruts, filtrer par niveau `INFO`, `WARN` ou `ERROR`, puis créer si besoin un premier dashboard pour suivre le volume de logs et les erreurs.
 
 Pour distinguer les sources, filtrer avec `service: front` pour le monitoring navigateur, ou `service: back` pour les logs serveur.
+
+#### Importer la configuration Kibana sauvegardée
+
+Le dépôt contient aussi un export Kibana prêt à réimporter dans [misc/kibana/export.ndjson](misc/kibana/export.ndjson). Il inclut la data view `microcrm-logs-*` et le dashboard `First Dashboard`.
+
+Pour le réimporter dans Kibana :
+
+1. aller dans **Stack Management**;
+2. ouvrir **Saved Objects**;
+3. cliquer sur **Import**;
+4. sélectionner [misc/kibana/export.ndjson](misc/kibana/export.ndjson);
+5. valider l'import et conserver les dépendances proposées.
+
+Si Kibana demande un écrasement d'objets existants, l'accepter seulement si tu veux remplacer la version déjà présente dans l'espace courant.
