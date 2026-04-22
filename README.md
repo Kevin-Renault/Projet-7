@@ -209,6 +209,8 @@ docker compose up -d --build
 
 Les logs JSON du back sont envoyés à Logstash quand le profil `elk` est actif. Kibana est ensuite disponible sur http://localhost:5601.
 
+Les événements de monitoring du front sont envoyés au back via `/api/telemetry/front-logs`, puis réémis dans les logs applicatifs avec un champ `service: front`. Cela permet de les retrouver dans Kibana au même endroit que les logs du back, tout en les distinguant facilement.
+
 #### Utilisation de Kibana
 
 Une fois Kibana ouvert, cliquer sur **Explore on my own**, puis :
@@ -220,3 +222,5 @@ Une fois Kibana ouvert, cliquer sur **Explore on my own**, puis :
 5. valider la création.
 
 Ensuite, utiliser **Discover** pour consulter les logs bruts, filtrer par niveau `INFO`, `WARN` ou `ERROR`, puis créer si besoin un premier dashboard pour suivre le volume de logs et les erreurs.
+
+Pour distinguer les sources, filtrer avec `service: front` pour le monitoring navigateur, ou `service: back` pour les logs serveur.
