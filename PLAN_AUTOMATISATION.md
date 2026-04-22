@@ -107,6 +107,7 @@ Le rôle de Docker Compose est de :
 - Capturer les erreurs globales Angular avec un gestionnaire d'erreurs.
 - Tracer les appels HTTP utiles avec un interceptor, en limitant les données sensibles.
 - Remonter uniquement les événements utiles au diagnostic, comme les échecs de chargement ou de validation.
+- Acheminer les événements front vers le back via `/api/telemetry/front-logs` pour les rendre visibles dans Kibana.
 - Conserver un format de log cohérent avec le back pour pouvoir l'exploiter dans ELK.
 
 ### Points de vigilance
@@ -133,4 +134,5 @@ L'objectif est de garantir un pipeline simple, reproductible et cohérent avec l
 - Le workflow de CI principal est présent dans `.github/workflows/ci.yml`.
 - Le workflow périodique est présent dans `.github/workflows/periodic-tests.yml`.
 - La suite de tests commune est factorisée dans `.github/actions/run-test-suite/action.yml`.
+- Le monitoring front minimal est en place avec un ErrorHandler Angular, un interceptor HTTP et un acheminement vers le back.
 - Le plan de conteneurisation est opérationnel avec `Dockerfile`, `docker-compose.yml` et `docker-compose-elk.yml`.
