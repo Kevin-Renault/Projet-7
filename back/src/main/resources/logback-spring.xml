@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Read runtime settings from Spring so the same file works locally and in Docker. -->
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="microcrm"/>
+    <springProperty scope="context" name="LOGSTASH_HOST" source="elk.logstash.host" defaultValue="localhost"/>
+    <springProperty scope="context" name="LOGSTASH_PORT" source="elk.logstash.port" defaultValue="5000"/>
+
+    <!-- Keep a stable log level pattern for human-readable console output. -->
+    <property name="LOG_LEVEL_PATTERN" value="%5p"/>
+
+    <!-- Default app logs: tagged as [Back] so Kibana can distinguish server events. -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service":"${APP_NAME}","label":"[Back]"}</customFields>
+            <includeMdc>true</includeMdc>
+            <includeContext>true</includeContext>
+        </encoder>
+    </appender>
+
+    <!-- Dedicated channel for telemetry events relayed from the front. -->
+    <appender name="FRONT_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service":"front","label":"[Front]"}</customFields>
+            <includeMdc>true</includeMdc>
+            <includeContext>true</includeContext>
+        </encoder>
+    </appender>
+
+    <!-- Without the ELK profile, only console logging is active. -->
+    <springProfile name="!elk">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- With ELK enabled, send the same streams both to console and to Logstash. -->
+    <springProfile name="elk">
+        <!-- Back-end logs go to Logstash with the [Back] marker. -->
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"service":"${APP_NAME}","label":"[Back]"}</customFields>
+                <includeMdc>true</includeMdc>
+                <includeContext>true</includeContext>
+            </encoder>
+        </appender>
+
+        <!-- Front telemetry is forwarded separately so Kibana can filter it easily. -->
+        <appender name="FRONT_LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"service":"front","label":"[Front]"}</customFields>
+                <includeMdc>true</includeMdc>
+                <includeContext>true</includeContext>
+            </encoder>
+        </appender>
+
+        <!-- FrontMonitoringController is isolated so its events keep the [Front] label. -->
+        <logger name="com.openclassroom.devops.orion.microcrm.FrontMonitoringController" level="INFO" additivity="false">
+            <appender-ref ref="FRONT_CONSOLE"/>
+            <appender-ref ref="FRONT_LOGSTASH"/>
+        </logger>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="LOGSTASH"/>
+        </root>
+    </springProfile>
+
+    <!-- Same front routing when the app runs without the ELK profile. -->
+    <springProfile name="!elk">
+        <logger name="com.openclassroom.devops.orion.microcrm.FrontMonitoringController" level="INFO" additivity="false">
+            <appender-ref ref="FRONT_CONSOLE"/>
+        </logger>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- Reduce framework noise so application logs stay readable in Kibana. -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.apache" level="WARN"/>
+</configuration>
