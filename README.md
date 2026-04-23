@@ -132,6 +132,19 @@ La CI utilise maintenant SonarCloud (`https://sonarcloud.io`) plutôt qu'un serv
 
 L'analyse couvre le backend et le frontend dans un seul projet SonarQube.
 
+### Points critiques relevés et corrigés
+
+- Côté front, les ressources CSS et les assets de production sont maintenant fingerprintés avec un hash grâce à `outputHashing: all` dans le build Angular.
+- Ce point était critique pour éviter la persistance de fichiers CSS obsolètes après déploiement et limiter les comportements incohérents liés au cache navigateur ou au cache CDN.
+- La correction est appliquée au build de production du frontend, ce qui garantit des noms de fichiers uniques à chaque nouvelle version.
+
+### Préconisations d'usage
+
+- Préférer une architecture multi-couche côté back, avec séparation entre API, service métier et persistance.
+- Ajouter un handler global pour les erreurs côté backend afin de centraliser les réponses d'erreur et éviter les retours incohérents.
+- Valider les données d'entrée au plus tôt, par exemple avec des contraintes Bean Validation sur les DTO ou les entités exposées.
+- Conserver les logs métier et les logs techniques séparés pour faciliter le diagnostic dans ELK et dans la CI.
+
 ### Images Docker
 
 #### Client
@@ -179,3 +192,49 @@ docker run -it --rm -p 8080:8080 -p 80:80 -p 443:443 orion-microcrm-standalone:l
 ```
 
 L'application sera disponible sur https://localhost et l'API sur http://localhost:8080.
+
+### Stack ELK locale
+
+Pour centraliser les logs applicatifs en local, lancer d'abord la stack ELK dédiée :
+
+```shell
+docker compose -f docker-compose-elk.yml up -d
+```
+
+Puis démarrer l'application avec le compose principal :
+
+```shell
+docker compose up -d --build
+```
+
+Les logs JSON du back sont envoyés à Logstash quand le profil `elk` est actif. Kibana est ensuite disponible sur http://localhost:5601.
+
+Les événements de monitoring du front sont envoyés au back via `/api/telemetry/front-logs`, puis réémis dans les logs applicatifs avec un champ `service: front`. Cela permet de les retrouver dans Kibana au même endroit que les logs du back, tout en les distinguant facilement.
+
+#### Utilisation de Kibana
+
+Une fois Kibana ouvert, cliquer sur **Explore on my own**, puis :
+
+1. aller dans **Stack Management**;
+2. ouvrir **Data Views**;
+3. cliquer sur **Create data view**;
+4. saisir l'index `microcrm-logs-*`;
+5. valider la création.
+
+Ensuite, utiliser **Discover** pour consulter les logs bruts, filtrer par niveau `INFO`, `WARN` ou `ERROR`, puis créer si besoin un premier dashboard pour suivre le volume de logs et les erreurs.
+
+Pour distinguer les sources, filtrer avec `service: front` pour le monitoring navigateur, ou `service: back` pour les logs serveur.
+
+#### Importer la configuration Kibana sauvegardée
+
+Le dépôt contient aussi un export Kibana prêt à réimporter dans [misc/kibana/export.ndjson](misc/kibana/export.ndjson). Il inclut la data view `microcrm-logs-*` et le dashboard `First Dashboard`.
+
+Pour le réimporter dans Kibana :
+
+1. aller dans **Stack Management**;
+2. ouvrir **Saved Objects**;
+3. cliquer sur **Import**;
+4. sélectionner [misc/kibana/export.ndjson](misc/kibana/export.ndjson);
+5. valider l'import et conserver les dépendances proposées.
+
+Si Kibana demande un écrasement d'objets existants, l'accepter seulement si tu veux remplacer la version déjà présente dans l'espace courant.
