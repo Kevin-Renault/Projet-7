@@ -1,0 +1,224 @@
+name: DORA Report
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "Date de début au format YYYY-MM-DD. Vide = début de vie de chaque flux."
+        required: false
+        default: ""
+      end_date:
+        description: "Date de fin au format YYYY-MM-DD. Vide = fin de vie de chaque flux."
+        required: false
+        default: ""
+      output_path:
+        description: "Chemin du fichier Markdown généré"
+        required: false
+        default: "artifacts/dora-report.md"
+
+permissions:
+  contents: read
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all remote branches
+        run: git fetch origin +refs/heads/*:refs/remotes/origin/* --prune --tags
+
+      - name: Generate DORA report
+        shell: bash
+        env:
+          START_INPUT: ${{ github.event.inputs.start_date }}
+          END_INPUT: ${{ github.event.inputs.end_date }}
+          OUTPUT_PATH: ${{ github.event.inputs.output_path }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p "$(dirname "$OUTPUT_PATH")"
+
+          collect_dev_merges() {
+            git log origin/dev \
+              --first-parent \
+              --reverse \
+              --merges \
+              --pretty=format:'%H|%ad|%s' \
+              --date=iso-strict \
+              | grep 'Merge pull request' \
+              | grep -v 'from Kevin-Renault/dev' \
+              || true
+          }
+
+          collect_main_merges() {
+            git log origin/main \
+              --first-parent \
+              --reverse \
+              --merges \
+              --pretty=format:'%H|%ad|%s' \
+              --date=iso-strict \
+              | grep 'Merge pull request #[0-9]\+ from Kevin-Renault/dev' \
+              || true
+          }
+
+          normalize_start() {
+            local value="$1"
+            if [[ -z "$value" ]]; then
+              echo ""
+            elif [[ ${#value} -eq 10 ]]; then
+              echo "${value}T00:00:00+00:00"
+            else
+              echo "$value"
+            fi
+          }
+
+          normalize_end() {
+            local value="$1"
+            if [[ -z "$value" ]]; then
+              echo ""
+            elif [[ ${#value} -eq 10 ]]; then
+              echo "${value}T23:59:59+00:00"
+            else
+              echo "$value"
+            fi
+          }
+
+          first_date_from_rows() {
+            local rows="$1"
+            printf '%s\n' "$rows" | sed -n '1p' | cut -d'|' -f2
+          }
+
+          last_date_from_rows() {
+            local rows="$1"
+            printf '%s\n' "$rows" | sed -n '$p' | cut -d'|' -f2
+          }
+
+          write_section() {
+            local title="$1"
+            local rows="$2"
+            local since="$3"
+            local until="$4"
+
+            local since_epoch until_epoch count total_seconds average_hours
+            since_epoch=$(date -d "$since" +%s)
+            until_epoch=$(date -d "$until" +%s)
+            count=0
+            total_seconds=0
+
+            {
+              echo "## ${title}"
+              echo
+              echo "- Période retenue: ${since} -> ${until}"
+              echo
+              echo "| Date merge | PR | Branche source | Premier commit | Lead time | Sujet |"
+              echo "| --- | ---: | --- | --- | ---: | --- |"
+
+              while IFS='|' read -r sha merge_date subject; do
+                [[ -z "${sha:-}" ]] && continue
+
+                merge_epoch=$(date -d "$merge_date" +%s)
+                if (( merge_epoch < since_epoch || merge_epoch > until_epoch )); then
+                  continue
+                fi
+
+                pr_number=$(printf '%s\n' "$subject" | sed -n 's/.*Merge pull request #\([0-9]\+\).*/#\1/p')
+                source_branch=$(printf '%s\n' "$subject" | sed -n 's/.*from Kevin-Renault\/\([^ ]*\).*/\1/p')
+                first_commit=$(git rev-list --reverse "${sha}^1..${sha}^2" | head -n 1 || true)
+                if [[ -z "$first_commit" ]]; then
+                  first_commit="$sha"
+                fi
+                first_commit_date=$(git show -s --format=%aI "$first_commit")
+                lead_seconds=$(( $(date -d "$merge_date" +%s) - $(date -d "$first_commit_date" +%s) ))
+                if (( lead_seconds < 0 )); then
+                  lead_seconds=0
+                fi
+                lead_hours=$(awk -v seconds="$lead_seconds" 'BEGIN { printf "%.2f", seconds / 3600 }')
+
+                printf '| %s | %s | %s | %s (%s) | %s h | %s |\n' \
+                  "$(date -d "$merge_date" '+%Y-%m-%d %H:%M')" \
+                  "${pr_number:-n/a}" \
+                  "${source_branch:-n/a}" \
+                  "${first_commit:0:8}" \
+                  "$(date -d "$first_commit_date" '+%Y-%m-%d %H:%M')" \
+                  "$lead_hours" \
+                  "$subject"
+
+                count=$((count + 1))
+                total_seconds=$((total_seconds + lead_seconds))
+              done <<< "$rows"
+
+              if (( count == 0 )); then
+                echo "| - | - | - | - | - | Aucune donnée dans la période |"
+              fi
+
+              echo
+              echo "- Nombre d'éléments: ${count}"
+              if (( count > 0 )); then
+                average_hours=$(awk -v seconds="$total_seconds" -v count="$count" 'BEGIN { printf "%.2f", (seconds / count) / 3600 }')
+                echo "- Lead time moyen: ${average_hours} h"
+              else
+                echo "- Lead time moyen: n/a"
+              fi
+              echo
+            } >> "$OUTPUT_PATH"
+          }
+
+          dev_rows_all=$(collect_dev_merges)
+          main_rows_all=$(collect_main_merges)
+
+          if [[ -n "$START_INPUT" ]]; then
+            dev_since=$(normalize_start "$START_INPUT")
+            main_since=$(normalize_start "$START_INPUT")
+          else
+            dev_since=$(first_date_from_rows "$dev_rows_all")
+            main_since=$(first_date_from_rows "$main_rows_all")
+          fi
+
+          if [[ -n "$END_INPUT" ]]; then
+            dev_until=$(normalize_end "$END_INPUT")
+            main_until=$(normalize_end "$END_INPUT")
+          else
+            dev_until=$(last_date_from_rows "$dev_rows_all")
+            main_until=$(last_date_from_rows "$main_rows_all")
+          fi
+
+          {
+            echo "# Rapport DORA automatique"
+            echo
+            echo "- Branche d'exécution: ${GITHUB_REF_NAME}"
+            echo "- Début demandé: ${START_INPUT:-<vide>}"
+            echo "- Fin demandée: ${END_INPUT:-<vide>}"
+            echo "- Règle par défaut: si une date est vide, le workflow prend toute la vie du flux concerné."
+            echo
+            echo "> Le flux branches -> dev mesure l'intégration intermédiaire."
+            echo "> Le flux dev -> main mesure la livraison principale retenue pour la lecture DORA."
+            echo
+          } > "$OUTPUT_PATH"
+
+          write_section "Flux branches -> dev" "$dev_rows_all" "$dev_since" "$dev_until"
+          write_section "Flux dev -> main" "$main_rows_all" "$main_since" "$main_until"
+
+          {
+            echo "## Méthode de calcul"
+            echo
+            echo "- Les merges sont extraits depuis l'historique Git avec git log sur les branches dev et main."
+            echo "- Le lead time est estimé entre le premier commit de la PR et le merge final."
+            echo "- Par défaut, si start_date ou end_date sont vides, le workflow prend la vie complète du flux considéré."
+            echo "- Le rapport est écrit dans ${OUTPUT_PATH} et peut être publié comme artefact."
+            echo
+          } >> "$OUTPUT_PATH"
+
+          cat "$OUTPUT_PATH" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dora-report
+          path: ${{ github.event.inputs.output_path }}
+          if-no-files-found: error
