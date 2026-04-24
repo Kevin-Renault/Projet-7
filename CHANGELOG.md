@@ -1,9 +1,29 @@
-# [2.1.0-dev.3](https://github.com/Kevin-Renault/Projet-7/compare/v2.1.0-dev.2...v2.1.0-dev.3) (2026-04-24)
+# [2.1.0](https://github.com/Kevin-Renault/Projet-7/compare/v2.0.0...v2.1.0) (2026-04-23)
 
 
 ### Bug Fixes
 
-* **release:** typo run echo ([6327144](https://github.com/Kevin-Renault/Projet-7/commit/63271444c22c5ff80749975a18375475552f36a5))
+* **front:** link published package to repository ([8d99bff](https://github.com/Kevin-Renault/Projet-7/commit/8d99bffbb0d5c4f61089d0d1a1510ddc15ba7bad))
+
+
+### Features
+
+* **back:** add ELK info logs ([ddea291](https://github.com/Kevin-Renault/Projet-7/commit/ddea2910b9141a5198a475416814f6e398efec60))
+* **back:** add ELK info logs ([1e855f3](https://github.com/Kevin-Renault/Projet-7/commit/1e855f3a6aacc0ed3af42a70e52e4f0610066bee))
+* **back:** add ELK logging configuration ([478acaf](https://github.com/Kevin-Renault/Projet-7/commit/478acaf4784ca5363fe5a1346fac783154e0ecb3))
+* **back:** add ELK logging configuration ([68e3d88](https://github.com/Kevin-Renault/Projet-7/commit/68e3d881e65ecd13f60d2dd9700ec04a3aa9c865))
+* **back:** add info logs in backend ([d9ab134](https://github.com/Kevin-Renault/Projet-7/commit/d9ab1343813faa73a889143021ef878a85a1ab84))
+* **back:** add info logs in backend ([fa4d7c1](https://github.com/Kevin-Renault/Projet-7/commit/fa4d7chttps://github.com/Kevin-Renault/Projet-7/pull/50/conflict?name=front%252Fpackage.json&ancestor_oid=683bc00f83f9f3ca54a287c73b0feeca9ccc2319&base_oid=f23fe9291787c6ac80cd2927027cb814fa740997&head_oid=27eaf45644ce098151b03a732f3b69dc184590d21db86d6609db7c1004a4d761a90c1f6103))
+* **back:** centralize ELK log messages ([890dfd6](https://github.com/Kevin-Renault/Projet-7/commit/890dfd67780c564b8bed4632f42ee0faf6997a79))
+* **back:** centralize ELK log messages ([e3f9110](https://github.com/Kevin-Renault/Projet-7/commit/e3f9110e7669cc6c235f5ca616c75ef42e7bbf52))
+* **back:** log repository lifecycle events ([27b2b1c](https://github.com/Kevin-Renault/Projet-7/commit/27b2b1cdea12f4269e7b125f4f991f4188dfd426))
+* **back:** log repository lifecycle events ([833a0d3](https://github.com/Kevin-Renault/Projet-7/commit/833a0d3621a3c9850d1e6df0ff091948643c9011))
+* **back:** receive and tag front telemetry ([96dfda3](https://github.com/Kevin-Renault/Projet-7/commit/96dfda3aa6f8768f0f9d51c53320e3805c05670f))
+* **ci:** add periodic test workflow for main and dev ([45a08e0](https://github.com/Kevin-Renault/Projet-7/commit/45a08e0f15f57709fb01080f70659046a751ebe4))
+* **elk:** add local ELK docker compose ([5249510](https://github.com/Kevin-Renault/Projet-7/commit/5249510806416cc3210bcd62fb5ee8f434204527))
+* **elk:** add local ELK docker compose ([8cd1433](https://github.com/Kevin-Renault/Projet-7/commit/8cd14332ce2b094dba1159dd1d289ff00ed78f25))
+* **front:** send telemetry to backend ([c94a9a1](https://github.com/Kevin-Renault/Projet-7/commit/c94a9a17dfd0f28bb3402f0e89e29af771fdf48c))
+* **logging:** separate back and front labels in logback ([45bad0d](https://github.com/Kevin-Renault/Projet-7/commit/45bad0d2bfa37b147efa8c9612350ee92c6b11e0))
 
 # [2.1.0-dev.2](https://github.com/Kevin-Renault/Projet-7/compare/v2.1.0-dev.1...v2.1.0-dev.2) (2026-04-23)
 
