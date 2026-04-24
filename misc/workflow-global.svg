@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="980" viewBox="0 0 1700 980" role="img" aria-labelledby="title desc">
+  <title id="title">Workflow global MicroCRM</title>
+  <desc id="desc">Schéma du flux global du projet MicroCRM incluant développement, CI, publication, monitoring ELK, sauvegarde, reprise et import Kibana.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fbff"/>
+      <stop offset="100%" stop-color="#eef3f9"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f7fafc"/>
+    </linearGradient>
+    <linearGradient id="greenPanel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#d1fae5"/>
+    </linearGradient>
+    <linearGradient id="bluePanel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eff6ff"/>
+      <stop offset="100%" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="amberPanel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#fde68a"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#334155"/>
+    </marker>
+    <marker id="dashArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#64748b"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 18px Arial, sans-serif; fill: #475569; }
+      .lane { font: 700 15px Arial, sans-serif; letter-spacing: 0.12em; fill: #64748b; }
+      .boxTitle { font: 700 19px Arial, sans-serif; fill: #0f172a; }
+      .boxText { font: 400 15px Arial, sans-serif; fill: #334155; }
+      .small { font: 400 13px Arial, sans-serif; fill: #64748b; }
+      .box { fill: url(#panel); stroke: #cbd5e1; stroke-width: 2; rx: 20; ry: 20; filter: url(#shadow); }
+      .boxBlue { fill: url(#bluePanel); stroke: #60a5fa; stroke-width: 2; rx: 20; ry: 20; filter: url(#shadow); }
+      .boxGreen { fill: url(#greenPanel); stroke: #34d399; stroke-width: 2; rx: 20; ry: 20; filter: url(#shadow); }
+      .boxAmber { fill: url(#amberPanel); stroke: #f59e0b; stroke-width: 2; rx: 20; ry: 20; filter: url(#shadow); }
+      .section { fill: none; stroke: #cbd5e1; stroke-width: 2; rx: 26; ry: 26; }
+      .mainArrow { stroke: #334155; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .dashArrowLine { stroke: #64748b; stroke-width: 3; stroke-dasharray: 10 10; fill: none; marker-end: url(#dashArrow); }
+      .dotArrow { stroke: #64748b; stroke-width: 3; stroke-dasharray: 3 9; fill: none; marker-end: url(#dashArrow); }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1700" height="980" fill="url(#bg)"/>
+
+  <text x="70" y="72" class="title">Workflow global MicroCRM</text>
+  <text x="70" y="104" class="subtitle">Développement, CI, monitoring ELK, sauvegarde, reprise et import Kibana</text>
+
+  <rect x="50" y="140" width="1600" height="760" class="section"/>
+
+  <text x="85" y="185" class="lane">DEVELOPPEMENT</text>
+  <text x="470" y="185" class="lane">CI / QUALITE</text>
+  <text x="915" y="185" class="lane">CONTAINERS / RUN</text>
+  <text x="1325" y="185" class="lane">SUPERVISION / REPRISE</text>
+
+  <rect x="90" y="230" width="300" height="150" class="box"/>
+  <text x="120" y="274" class="boxTitle">Code source</text>
+  <text x="120" y="306" class="boxText">Back Spring Boot + front Angular</text>
+  <text x="120" y="334" class="small">Modifs locales, branches, pull request</text>
+
+  <rect x="90" y="430" width="300" height="160" class="boxBlue"/>
+  <text x="120" y="474" class="boxTitle">Tests locaux</text>
+  <text x="120" y="506" class="boxText">npm test, Gradle test, compile</text>
+  <text x="120" y="534" class="small">Vérification rapide avant push</text>
+
+  <rect x="470" y="230" width="320" height="150" class="boxGreen"/>
+  <text x="500" y="274" class="boxTitle">GitHub Actions CI</text>
+  <text x="500" y="306" class="boxText">Tests, artefacts, SonarQube</text>
+  <text x="500" y="334" class="small">Caches Java / Node / Chrome</text>
+
+  <rect x="470" y="430" width="320" height="160" class="box"/>
+  <text x="500" y="474" class="boxTitle">Build &amp; validation Docker</text>
+  <text x="500" y="506" class="boxText">Images front / back, healthchecks</text>
+  <text x="500" y="534" class="small">Contrôle de démarrage des conteneurs</text>
+
+  <rect x="470" y="640" width="320" height="140" class="boxAmber"/>
+  <text x="500" y="684" class="boxTitle">Release</text>
+  <text x="500" y="716" class="boxText">Publication des livrables</text>
+  <text x="500" y="744" class="small">Déclenchée sur main / dev selon règles CI</text>
+
+  <rect x="870" y="230" width="340" height="150" class="box"/>
+  <text x="900" y="274" class="boxTitle">Application lancée</text>
+  <text x="900" y="306" class="boxText">docker compose up -d --build</text>
+  <text x="900" y="334" class="small">Front + back + dépendances locales</text>
+
+  <rect x="870" y="430" width="340" height="160" class="boxBlue"/>
+  <text x="900" y="474" class="boxTitle">Monitoring ELK</text>
+  <text x="900" y="506" class="boxText">Back [Back], front [Front]</text>
+  <text x="900" y="534" class="small">Logstash, Elasticsearch, Kibana</text>
+
+  <rect x="870" y="640" width="340" height="140" class="boxGreen"/>
+  <text x="900" y="684" class="boxTitle">Kibana</text>
+  <text x="900" y="716" class="boxText">Data view + dashboard</text>
+  <text x="900" y="744" class="small">Import/export Saved Objects (.ndjson)</text>
+
+  <rect x="1290" y="230" width="290" height="150" class="boxBlue"/>
+  <text x="1320" y="274" class="boxTitle">Sauvegarde</text>
+  <text x="1320" y="306" class="boxText">Données métier, export Kibana</text>
+  <text x="1320" y="334" class="small">Config Docker / supervision</text>
+
+  <rect x="1290" y="430" width="290" height="160" class="box"/>
+  <text x="1320" y="474" class="boxTitle">Reprise</text>
+  <text x="1320" y="506" class="boxText">Restaurer base + Saved Objects</text>
+  <text x="1320" y="534" class="small">Relancer les services Docker</text>
+
+  <rect x="1290" y="640" width="290" height="140" class="boxAmber"/>
+  <text x="1320" y="684" class="boxTitle">Import Kibana</text>
+  <text x="1320" y="716" class="boxText">misc/kibana/export.ndjson</text>
+  <text x="1320" y="744" class="small">Data view + dashboard réinjectés</text>
+
+  <!-- Main flow -->
+  <path class="mainArrow" d="M 240 380 C 240 400, 240 405, 240 430"/>
+  <path class="mainArrow" d="M 390 510 C 430 510, 435 430, 470 350"/>
+  <path class="mainArrow" d="M 390 305 C 420 305, 430 305, 470 305"/>
+  <path class="mainArrow" d="M 790 305 C 820 305, 835 305, 870 305"/>
+  <path class="mainArrow" d="M 1210 305 C 1240 305, 1250 305, 1290 305"/>
+
+  <path class="mainArrow" d="M 630 380 C 630 405, 630 405, 630 430"/>
+  <path class="mainArrow" d="M 630 590 C 630 615, 630 615, 630 640"/>
+  <path class="mainArrow" d="M 1040 380 C 1040 405, 1040 405, 1040 430"/>
+  <path class="mainArrow" d="M 1040 590 C 1040 615, 1040 615, 1040 640"/>
+  <path class="mainArrow" d="M 1435 380 C 1435 405, 1435 405, 1435 430"/>
+  <path class="mainArrow" d="M 1435 590 C 1435 615, 1435 615, 1435 640"/>
+
+  <!-- Feedback paths -->
+  <path class="dashArrowLine" d="M 1290 710 C 1235 710, 1225 710, 1210 710"/>
+  <path class="dashArrowLine" d="M 790 710 C 830 710, 845 620, 870 350"/>
+
+  <text x="78" y="865" class="small">Lecture du dépôt et des workflows actuels: CI principale, workflow périodique, export Kibana versionné, monitoring front/back, et plan de reprise associé.</text>
+</svg>
