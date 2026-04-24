@@ -1,3 +1,10 @@
+# [2.1.0-dev.3](https://github.com/Kevin-Renault/Projet-7/compare/v2.1.0-dev.2...v2.1.0-dev.3) (2026-04-24)
+
+
+### Bug Fixes
+
+* **release:** typo run echo ([6327144](https://github.com/Kevin-Renault/Projet-7/commit/63271444c22c5ff80749975a18375475552f36a5))
+
 # [2.1.0-dev.2](https://github.com/Kevin-Renault/Projet-7/compare/v2.1.0-dev.1...v2.1.0-dev.2) (2026-04-23)
 
 
