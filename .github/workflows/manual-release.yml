@@ -1,0 +1,135 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_major:
+        description: "Incrémenter la version majeure"
+        type: boolean
+        required: false
+        default: false
+      bump_minor:
+        description: "Incrémenter la version mineure"
+        type: boolean
+        required: false
+        default: false
+      bump_patch:
+        description: "Incrémenter la version corrective"
+        type: boolean
+        required: false
+        default: true
+      release_notes:
+        description: "Message de release à associer au tag GitHub"
+        required: false
+        default: "Manual release"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Prepare release toolchain
+        uses: ./.github/actions/prepare-release-toolchain
+
+      - name: Validate bump choice
+        shell: bash
+        run: |
+          set -euo pipefail
+          selected=0
+          [[ "${{ inputs.bump_major }}" == 'true' ]] && selected=$((selected + 1))
+          [[ "${{ inputs.bump_minor }}" == 'true' ]] && selected=$((selected + 1))
+          [[ "${{ inputs.bump_patch }}" == 'true' ]] && selected=$((selected + 1))
+
+          if [[ "$selected" -ne 1 ]]; then
+            echo "Choisis exactement un seul niveau de version: major, minor ou patch."
+            exit 1
+          fi
+
+      - name: Compute next stable version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          latest_tag=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)
+          if [[ -z "$latest_tag" ]]; then
+            base_version="0.0.0"
+          else
+            base_version=${latest_tag#v}
+          fi
+
+          IFS='.' read -r major minor patch <<< "$base_version"
+
+          if [[ "${{ inputs.bump_major }}" == 'true' ]]; then
+            major=$((major + 1))
+            minor=0
+            patch=0
+          elif [[ "${{ inputs.bump_minor }}" == 'true' ]]; then
+            minor=$((minor + 1))
+            patch=0
+          else
+            patch=$((patch + 1))
+          fi
+
+          next_version="${major}.${minor}.${patch}"
+          echo "version=$next_version" >> "$GITHUB_OUTPUT"
+          echo "next_version=$next_version" >> "$GITHUB_ENV"
+          echo "base_version=$base_version" >> "$GITHUB_ENV"
+
+      - name: Update project versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/sync-version.js "$next_version"
+
+      - name: Build backend package
+        working-directory: back
+        run: ./gradlew clean build
+
+      - name: Package backend publication
+        working-directory: back
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: ./gradlew publishMavenPublicationToGitHubPackagesRepository
+
+      - name: Build frontend package
+        working-directory: front
+        run: npm ci && npm run build
+
+      - name: Commit version bump
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add front/package.json back/build.gradle
+          git commit -m "chore(release): v${next_version} [skip ci]" || echo "Nothing to commit"
+
+      - name: Create release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git tag -a "v${next_version}" -m "v${next_version}"
+
+      - name: Push release commit and tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push origin HEAD:main --follow-tags
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.next_version }}
+          name: v${{ env.next_version }}
+          body: ${{ inputs.release_notes }}

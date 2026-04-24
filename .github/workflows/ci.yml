@@ -259,19 +259,8 @@ jobs: # Chaque job couvre une étape distincte de validation, build ou publicati
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set up Java 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-          cache: gradle
-
-      - name: Use Node.js 24
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: front/package-lock.json
+      - name: Prepare release toolchain
+        uses: ./.github/actions/prepare-release-toolchain
 
       # semantic-release calcule la prochaine version officielle et prépare la suite du job.
       - name: Install dependencies

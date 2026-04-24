@@ -1,0 +1,24 @@
+name: Prepare release toolchain
+description: Set up Java, Node.js and Git identity for release workflows.
+runs:
+  using: composite
+  steps:
+    - name: Set up Java with Gradle cache
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: '21'
+        cache: gradle
+
+    - name: Set up Node.js with npm cache
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+        cache: npm
+        cache-dependency-path: front/package-lock.json
+
+    - name: Configure Git identity
+      shell: bash
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
