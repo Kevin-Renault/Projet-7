@@ -37,7 +37,8 @@ jobs:
         uses: ./.github/actions/prepare-release-toolchain
 
       - name: Validate bump choice
-        run: echo "Selected bump: ${{ inputs.version_bump }}"
+        run: |
+          echo "Selected bump: ${{ inputs.version_bump }}"
 
       - name: Compute next stable version
         id: version
