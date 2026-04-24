@@ -238,3 +238,9 @@ Pour le réimporter dans Kibana :
 5. valider l'import et conserver les dépendances proposées.
 
 Si Kibana demande un écrasement d'objets existants, l'accepter seulement si tu veux remplacer la version déjà présente dans l'espace courant.
+
+#### Schéma du workflow global
+
+Le dépôt contient aussi un schéma global du workflow, de la sauvegarde et de la reprise dans [misc/workflow-global.svg](misc/workflow-global.svg). Il résume le chemin complet: développement, CI, déploiement Docker, monitoring ELK, export Kibana, sauvegarde et reprise.
+
+![Schéma du workflow global](./misc/workflow-global.svg)
