@@ -3,21 +3,15 @@ name: Manual Release
 on:
   workflow_dispatch:
     inputs:
-      bump_major:
-        description: "Incrémenter la version majeure"
-        type: boolean
+      version_bump:
+        description: "Niveau de version à incrémenter"
+        type: choice
         required: false
-        default: false
-      bump_minor:
-        description: "Incrémenter la version mineure"
-        type: boolean
-        required: false
-        default: false
-      bump_patch:
-        description: "Incrémenter la version corrective"
-        type: boolean
-        required: false
-        default: true
+        default: patch
+        options:
+          - major
+          - minor
+          - patch
       release_notes:
         description: "Message de release à associer au tag GitHub"
         required: false
@@ -43,18 +37,8 @@ jobs:
         uses: ./.github/actions/prepare-release-toolchain
 
       - name: Validate bump choice
-        shell: bash
         run: |
-          set -euo pipefail
-          selected=0
-          [[ "${{ inputs.bump_major }}" == 'true' ]] && selected=$((selected + 1))
-          [[ "${{ inputs.bump_minor }}" == 'true' ]] && selected=$((selected + 1))
-          [[ "${{ inputs.bump_patch }}" == 'true' ]] && selected=$((selected + 1))
-
-          if [[ "$selected" -ne 1 ]]; then
-            echo "Choisis exactement un seul niveau de version: major, minor ou patch."
-            exit 1
-          fi
+          echo "Selected bump: ${{ inputs.version_bump }}"
 
       - name: Compute next stable version
         id: version
@@ -71,11 +55,11 @@ jobs:
 
           IFS='.' read -r major minor patch <<< "$base_version"
 
-          if [[ "${{ inputs.bump_major }}" == 'true' ]]; then
+          if [[ "${{ inputs.version_bump }}" == 'major' ]]; then
             major=$((major + 1))
             minor=0
             patch=0
-          elif [[ "${{ inputs.bump_minor }}" == 'true' ]]; then
+          elif [[ "${{ inputs.version_bump }}" == 'minor' ]]; then
             minor=$((minor + 1))
             patch=0
           else

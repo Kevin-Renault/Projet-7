@@ -13,7 +13,7 @@
 * **back:** add ELK logging configuration ([478acaf](https://github.com/Kevin-Renault/Projet-7/commit/478acaf4784ca5363fe5a1346fac783154e0ecb3))
 * **back:** add ELK logging configuration ([68e3d88](https://github.com/Kevin-Renault/Projet-7/commit/68e3d881e65ecd13f60d2dd9700ec04a3aa9c865))
 * **back:** add info logs in backend ([d9ab134](https://github.com/Kevin-Renault/Projet-7/commit/d9ab1343813faa73a889143021ef878a85a1ab84))
-* **back:** add info logs in backend ([fa4d7c1](https://github.com/Kevin-Renault/Projet-7/commit/fa4d7c1db86d6609db7c1004a4d761a90c1f6103))
+* **back:** add info logs in backend ([fa4d7c1](https://github.com/Kevin-Renault/Projet-7/commit/fa4d7chttps://github.com/Kevin-Renault/Projet-7/pull/50/conflict?name=front%252Fpackage.json&ancestor_oid=683bc00f83f9f3ca54a287c73b0feeca9ccc2319&base_oid=f23fe9291787c6ac80cd2927027cb814fa740997&head_oid=27eaf45644ce098151b03a732f3b69dc184590d21db86d6609db7c1004a4d761a90c1f6103))
 * **back:** centralize ELK log messages ([890dfd6](https://github.com/Kevin-Renault/Projet-7/commit/890dfd67780c564b8bed4632f42ee0faf6997a79))
 * **back:** centralize ELK log messages ([e3f9110](https://github.com/Kevin-Renault/Projet-7/commit/e3f9110e7669cc6c235f5ca616c75ef42e7bbf52))
 * **back:** log repository lifecycle events ([27b2b1c](https://github.com/Kevin-Renault/Projet-7/commit/27b2b1cdea12f4269e7b125f4f991f4188dfd426))
