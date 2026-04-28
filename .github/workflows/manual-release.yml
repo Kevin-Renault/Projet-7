@@ -77,6 +77,10 @@ jobs:
           set -euo pipefail
           node scripts/sync-version.js "$next_version"
 
+      - name: Ensure Gradle wrapper is executable
+        working-directory: back
+        run: chmod +x ./gradlew || true
+
       - name: Build backend package
         working-directory: back
         run: ./gradlew clean build
