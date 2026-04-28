@@ -14,22 +14,40 @@ services:
     networks:
       - elk
 
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.13.4
-    container_name: microcrm-logstash
-    environment:
-      LS_JAVA_OPTS: -Xms512m -Xmx512m
-    volumes:
-      - ./misc/docker/elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
-    ports:
-      - "5000:5000"
-      - "9600:9600"
-    depends_on:
-      - elasticsearch
-    networks:
-      - elk
+    es-import:
+      image: curlimages/curl:8.4.0
+      container_name: microcrm-es-import
+      depends_on:
+        - elasticsearch
+      volumes:
+        - ./misc/kibana/sample-logs.jsonl:/sample-logs.jsonl:ro
+        - ./scripts/import-sample-logs.sh:/import-sample-logs.sh:ro
+      entrypoint: ["/bin/sh","-c"]
+      command: "/import-sample-logs.sh"
+      networks:
+        - elk
 
-  kibana:
+    kibana-init:
+      image: curlimages/curl:8.4.0
+      container_name: microcrm-kibana-init
+      depends_on:
+        - kibana
+        - es-import
+      volumes:
+        - ./misc/kibana/export.ndjson:/export.ndjson:ro
+      environment:
+        KIBANA_URL: http://kibana:5601
+        ES_URL: http://elasticsearch:9200
+        SAMPLE_INDEX: microcrm-logs-sample
+      entrypoint: ["/bin/sh","-c"]
+      command: >
+        until curl -sSf ${KIBANA_URL}/api/status >/dev/null 2>&1; do sleep 2; done;
+        echo "Kibana is up; waiting for sample index ${SAMPLE_INDEX} in Elasticsearch...";
+        until curl -sSf ${ES_URL}/${SAMPLE_INDEX}/_search?size=0 >/dev/null 2>&1; do sleep 2; done;
+        echo "Sample logs present; importing saved objects...";
+        curl -sS -X POST "${KIBANA_URL}/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -F file=@/export.ndjson || true;
+      networks:
+        - elk
     image: docker.elastic.co/kibana/kibana:8.13.4
     container_name: microcrm-kibana
     environment:
