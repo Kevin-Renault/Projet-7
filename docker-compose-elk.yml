@@ -50,11 +50,9 @@ services:
       - ./misc/kibana/export.ndjson:/export.ndjson:ro
     environment:
       KIBANA_URL: http://kibana:5601
-    entrypoint: ["/bin/sh","-c"]
+    entrypoint: [ "/bin/sh", "-c" ]
     command: >
-      until curl -sSf ${KIBANA_URL}/api/status >/dev/null 2>&1; do sleep 2; done;
-      echo "Kibana is up, importing saved objects...";
-      curl -sS -X POST "${KIBANA_URL}/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -F file=@/export.ndjson || true;
+      until curl -sSf ${KIBANA_URL}/api/status >/dev/null 2>&1; do sleep 2; done; echo "Kibana is up, importing saved objects..."; curl -sS -X POST "${KIBANA_URL}/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -F file=@/export.ndjson || true;
     networks:
       - elk
 
