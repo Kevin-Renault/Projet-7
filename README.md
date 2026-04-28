@@ -211,6 +211,38 @@ Les logs JSON du back sont envoyés à Logstash quand le profil `elk` est actif.
 
 Les événements de monitoring du front sont envoyés au back via `/api/telemetry/front-logs`, puis réémis dans les logs applicatifs avec un champ `service: front`. Cela permet de les retrouver dans Kibana au même endroit que les logs du back, tout en les distinguant facilement.
 
+### Sauvegarder et restaurer l'historique des logs
+
+Bonnes pratiques : ne pas versionner les fichiers de logs dans Git. Pour partager ou restaurer l'historique des logs, utilisez soit des snapshots Elasticsearch (pour un restore complet), soit des exports NDJSON avec `elasticdump` pour des jeux de données plus petits.
+
+Scripts fournis dans `scripts/` :
+- `scripts/restore-snapshot.sh <repo> <snapshot>` : démarre la stack ELK (si nécessaire) puis déclenche une restauration depuis un repository de snapshot ES (filesystem). Le repository doit pointer vers un emplacement accessible par le conteneur Elasticsearch (ex : volume monté).
+- `scripts/elasticdump-export.sh` : exporte les indices `microcrm-logs-*` vers `./dumps/` (utilise `elasticdump`).
+- `scripts/elasticdump-import.sh ./dumps` : importe les fichiers JSON produits par `elasticdump` vers Elasticsearch local.
+
+Exemples rapides :
+
+1) Export avec `elasticdump` :
+```bash
+# installer elasticdump si besoin
+npm install -g elasticdump
+./scripts/elasticdump-export.sh
+```
+
+2) Importer les dumps sur une instance ES locale :
+```bash
+./scripts/elasticdump-import.sh ./dumps
+```
+
+3) Restaurer un snapshot (si vous avez préalablement sauvegardé un snapshot dans un repo accessible) :
+```bash
+./scripts/restore-snapshot.sh my_backup snapshot_2026_04_27
+```
+
+Notes :
+- Pour les snapshots filesystem, il faut monter le dossier hôte contenant les snapshots dans `/usr/share/elasticsearch/snapshots` du conteneur Elasticsearch (voir `docker-compose-elk.yml` et ajouter un volume si nécessaire).
+- Les dumps JSON peuvent contenir des données sensibles ; stockez-les de façon sécurisée.
+
 #### Utilisation de Kibana
 
 Une fois Kibana ouvert, cliquer sur **Explore on my own**, puis :
@@ -227,14 +259,20 @@ Pour distinguer les sources, filtrer avec `service: front` pour le monitoring na
 
 #### Importer la configuration Kibana sauvegardée
 
-Le dépôt contient aussi un export Kibana prêt à réimporter dans [misc/kibana/export.ndjson](misc/kibana/export.ndjson). Il inclut la data view `microcrm-logs-*` et le dashboard `First Dashboard`.
+Le dépôt contient aussi un export Kibana prêt à réimporter dans [misc/kibana/flux-dashboard.ndjson](misc/kibana/flux-dashboard.ndjson). Il inclut la data view `microcrm-logs-*` et le dashboard `Flux front/back`.
+
+Ce dashboard est orienté flux et regroupe trois vues complémentaires :
+
+- le volume des requêtes front par méthode HTTP;
+- le temps moyen de réponse du back par méthode HTTP;
+- la répartition des réponses back par code HTTP.
 
 Pour le réimporter dans Kibana :
 
 1. aller dans **Stack Management**;
 2. ouvrir **Saved Objects**;
 3. cliquer sur **Import**;
-4. sélectionner [misc/kibana/export.ndjson](misc/kibana/export.ndjson);
+4. sélectionner [misc/kibana/flux-dashboard.ndjson](misc/kibana/flux-dashboard.ndjson);
 5. valider l'import et conserver les dépendances proposées.
 
 Si Kibana demande un écrasement d'objets existants, l'accepter seulement si tu veux remplacer la version déjà présente dans l'espace courant.
