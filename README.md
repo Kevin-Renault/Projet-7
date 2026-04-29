@@ -128,7 +128,7 @@ La CI utilise maintenant SonarCloud (`https://sonarcloud.io`) plutôt qu'un serv
 #### Rapports pris en compte
 
 - couverture Java : `back/build/reports/jacoco/test/jacocoTestReport.xml`
-- couverture Angular : `front/coverage/olympic-games-starter/lcov.info`
+- couverture Angular : `front/coverage/microcrm/lcov.info`
 
 L'analyse couvre le backend et le frontend dans un seul projet SonarQube.
 
@@ -245,7 +245,9 @@ Notes :
 
 #### Utilisation de Kibana
 
-Une fois Kibana ouvert, cliquer sur **Explore on my own**, puis :
+La stack charge déjà automatiquement ce qui existe côté Kibana via `docker-compose-elk.yml`, notamment la data view `microcrm-logs-*` et le dashboard `Flux front/back`.
+
+La suite est donc purement informative si tu veux ajouter toi-même d'autres objets Kibana ou recréer manuellement une configuration de départ. Une fois Kibana ouvert, cliquer sur **Explore on my own**, puis :
 
 1. aller dans **Stack Management**;
 2. ouvrir **Data Views**;
@@ -259,7 +261,7 @@ Pour distinguer les sources, filtrer avec `service: front` pour le monitoring na
 
 #### Importer la configuration Kibana sauvegardée
 
-Le dépôt contient aussi un export Kibana prêt à réimporter dans [misc/kibana/flux-dashboard.ndjson](misc/kibana/flux-dashboard.ndjson). Il inclut la data view `microcrm-logs-*` et le dashboard `Flux front/back`.
+Le dépôt contient aussi un export Kibana prêt à réimporter dans [misc/kibana/export.ndjson](misc/kibana/export.ndjson). Il inclut la data view `microcrm-logs-*` et le dashboard `Flux front/back`.
 
 Ce dashboard est orienté flux et regroupe trois vues complémentaires :
 
@@ -272,7 +274,7 @@ Pour le réimporter dans Kibana :
 1. aller dans **Stack Management**;
 2. ouvrir **Saved Objects**;
 3. cliquer sur **Import**;
-4. sélectionner [misc/kibana/flux-dashboard.ndjson](misc/kibana/flux-dashboard.ndjson);
+4. sélectionner [misc/kibana/export.ndjson](misc/kibana/export.ndjson);
 5. valider l'import et conserver les dépendances proposées.
 
 Si Kibana demande un écrasement d'objets existants, l'accepter seulement si tu veux remplacer la version déjà présente dans l'espace courant.
