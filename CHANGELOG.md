@@ -1,3 +1,17 @@
+# [3.2.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.1.1...v3.2.0) (2026-04-29)
+
+
+### Features
+
+* **dora:** add automated CFR/MTTR and final 4-metric ([b468b08](https://github.com/Kevin-Renault/Projet-7/commit/b468b089b960b795bf4eacc96eee7511c15b5950))
+
+# [3.2.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v3.1.1...v3.2.0-dev.1) (2026-04-29)
+
+
+### Features
+
+* **dora:** add automated CFR/MTTR and final 4-metric ([b468b08](https://github.com/Kevin-Renault/Projet-7/commit/b468b089b960b795bf4eacc96eee7511c15b5950))
+
 ## v3.1.1 - 2026-04-29
 
 Manual release : changelog

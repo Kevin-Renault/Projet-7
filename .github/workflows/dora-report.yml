@@ -101,6 +101,47 @@ jobs:
             printf '%s\n' "$rows" | sed -n '$p' | cut -d'|' -f2
           }
 
+          compute_lead_average_hours() {
+            local rows="$1"
+            local since="$2"
+            local until="$3"
+
+            local since_epoch until_epoch count total_seconds
+            since_epoch=$(date -d "$since" +%s)
+            until_epoch=$(date -d "$until" +%s)
+            count=0
+            total_seconds=0
+
+            while IFS='|' read -r sha merge_date subject; do
+              [[ -z "${sha:-}" ]] && continue
+
+              merge_epoch=$(date -d "$merge_date" +%s)
+              if (( merge_epoch < since_epoch || merge_epoch > until_epoch )); then
+                continue
+              fi
+
+              first_commit=$(git rev-list --reverse "${sha}^1..${sha}^2" | head -n 1 || true)
+              if [[ -z "$first_commit" ]]; then
+                first_commit="$sha"
+              fi
+
+              first_commit_date=$(git show -s --format=%aI "$first_commit")
+              lead_seconds=$(( $(date -d "$merge_date" +%s) - $(date -d "$first_commit_date" +%s) ))
+              if (( lead_seconds < 0 )); then
+                lead_seconds=0
+              fi
+
+              count=$((count + 1))
+              total_seconds=$((total_seconds + lead_seconds))
+            done <<< "$rows"
+
+            if (( count == 0 )); then
+              echo "n/a"
+            else
+              awk -v seconds="$total_seconds" -v count="$count" 'BEGIN { printf "%.2f", (seconds / count) / 3600 }'
+            fi
+          }
+
           write_section() {
             local title="$1"
             local rows="$2"
@@ -206,11 +247,119 @@ jobs:
           write_section "Flux branches -> dev" "$dev_rows_all" "$dev_since" "$dev_until"
           write_section "Flux dev -> main" "$main_rows_all" "$main_since" "$main_until"
 
+          # DORA 4-metric summary computation
+          main_lead_time_hours=$(compute_lead_average_hours "$main_rows_all" "$main_since" "$main_until")
+
+          metrics_env=$(mktemp)
+          runs_json=$(mktemp)
+
+          api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&event=push&per_page=100"
+          curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "$api_url" > "$runs_json"
+
+          python3 - "$runs_json" "$main_since" "$main_until" "$metrics_env" <<'PY'
+          import datetime
+          import json
+          import sys
+
+          runs_path, since_s, until_s, out_path = sys.argv[1:5]
+
+          with open(runs_path, "r", encoding="utf-8") as f:
+              payload = json.load(f)
+
+          def parse_iso(s: str):
+              s = s.replace("Z", "+00:00")
+              return datetime.datetime.fromisoformat(s)
+
+          since = parse_iso(since_s)
+          until = parse_iso(until_s)
+
+          runs = payload.get("workflow_runs", [])
+
+          filtered = []
+          for run in runs:
+              created_at = run.get("created_at")
+              conclusion = run.get("conclusion")
+              if not created_at or not conclusion:
+                  continue
+              created = parse_iso(created_at)
+              if created < since or created > until:
+                  continue
+              if conclusion not in {"success", "failure"}:
+                  continue
+              filtered.append({"created": created, "conclusion": conclusion})
+
+          filtered.sort(key=lambda r: r["created"])
+
+          successes = [r for r in filtered if r["conclusion"] == "success"]
+          failures = [r for r in filtered if r["conclusion"] == "failure"]
+
+          total = len(filtered)
+          success_count = len(successes)
+          failure_count = len(failures)
+
+          if total == 0:
+              cfr = "n/a"
+          else:
+              cfr = f"{(failure_count / total) * 100:.2f}"
+
+          mttr_samples = []
+          unresolved = 0
+          for fail in failures:
+              next_success = next((s for s in successes if s["created"] > fail["created"]), None)
+              if next_success is None:
+                  unresolved += 1
+                  continue
+              delta_h = (next_success["created"] - fail["created"]).total_seconds() / 3600
+              mttr_samples.append(delta_h)
+
+          if mttr_samples:
+              mttr_hours = f"{sum(mttr_samples) / len(mttr_samples):.2f}"
+          else:
+              mttr_hours = "n/a"
+
+          period_seconds = (until - since).total_seconds()
+          if period_seconds <= 0:
+              deploy_freq = "n/a"
+          else:
+              per_week = success_count * (7 * 24 * 3600) / period_seconds
+              deploy_freq = f"{per_week:.2f}"
+
+          with open(out_path, "w", encoding="utf-8") as out:
+              out.write(f"release_runs_total={total}\n")
+              out.write(f"release_runs_success={success_count}\n")
+              out.write(f"release_runs_failure={failure_count}\n")
+              out.write(f"cfr_percent={cfr}\n")
+              out.write(f"mttr_hours={mttr_hours}\n")
+              out.write(f"mttr_samples={len(mttr_samples)}\n")
+              out.write(f"mttr_unresolved_failures={unresolved}\n")
+              out.write(f"deploy_freq_per_week={deploy_freq}\n")
+          PY
+
+          source "$metrics_env"
+
+          {
+            echo "## Tableau final des 4 métriques DORA"
+            echo
+            echo "| Métrique DORA | Valeur | Source | Note |"
+            echo "| --- | ---: | --- | --- |"
+            echo "| Deployment frequency | ${deploy_freq_per_week} déploiements/semaine | GitHub Actions (`ci.yml`, runs succès sur `main`) | ${release_runs_success} runs succès sur ${release_runs_total} runs analysés |"
+            echo "| Lead time for changes | ${main_lead_time_hours} h | Git history (`dev` -> `main`) | Moyenne sur la période retenue |"
+            echo "| Change failure rate (CFR) | ${cfr_percent}% | GitHub Actions (`ci.yml`, conclusions `failure`) | ${release_runs_failure} échecs sur ${release_runs_total} runs succès+échec |"
+            echo "| MTTR | ${mttr_hours} h | GitHub Actions (`failure` -> prochain `success`) | ${mttr_samples} incidents résolus, ${mttr_unresolved_failures} non résolus dans la fenêtre |"
+            echo
+          } >> "$OUTPUT_PATH"
+
           {
             echo "## Méthode de calcul"
             echo
             echo "- Les merges sont extraits depuis l'historique Git avec git log sur les branches dev et main."
             echo "- Le lead time est estimé entre le premier commit de la PR et le merge final."
+            echo "- Deployment frequency, CFR et MTTR sont calculés depuis l'API GitHub Actions sur le workflow ci.yml (branche main, event push)."
+            echo "- CFR utilise les runs terminés avec conclusion success/failure: CFR = failures / (success + failure)."
+            echo "- MTTR mesure le temps entre un run failure et le prochain run success."
             echo "- Par défaut, si start_date ou end_date sont vides, le workflow prend la vie complète du flux considéré."
             echo "- Le rapport est écrit dans ${OUTPUT_PATH} et peut être publié comme artefact."
             echo
