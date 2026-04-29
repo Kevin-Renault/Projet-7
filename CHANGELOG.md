@@ -1,4 +1,4 @@
-## [2.1.1-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v2.1.0...v2.1.1-dev.1) (2026-04-28)
+## [2.1.1](https://github.com/Kevin-Renault/Projet-7/compare/v2.1.0...v2.1.1) (2026-04-24)
 
 
 ### Bug Fixes
