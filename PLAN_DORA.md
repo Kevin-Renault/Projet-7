@@ -77,6 +77,30 @@ Tu peux dire par exemple :
 - le taux d'échec est calculé à partir des pipelines en erreur ou des déploiements corrigés;
 - le MTTR est estimé à partir du temps entre l'apparition d'un incident dans les logs et sa résolution.
 
+### 5.1 Hypothèses explicites pour CFR et MTTR
+
+Pour éviter toute ambiguïté, le projet retient les hypothèses suivantes:
+
+- Un changement est compté comme "déployé" quand le job `release` de la CI est exécuté jusqu'à la publication (circuit automatique) ou quand la release manuelle publie ses artefacts (circuit manuel).
+- Un échec de changement (CFR) est retenu si au moins un de ces signaux est observé après release:
+	- rollback/tag correctif urgent,
+	- pipeline de correction immédiate suite à incident prod,
+	- incident applicatif confirmé dans les logs (`ERROR`) lié au changement livré.
+- Le MTTR est mesuré entre l'horodatage de détection de l'incident et l'horodatage de retour à l'état stable (pipeline vert + service rétabli).
+
+Formules utilisées:
+
+- `CFR = (nombre de releases en échec / nombre total de releases) * 100`
+- `MTTR = somme(des temps de rétablissement) / nombre d'incidents`
+
+### 5.2 Protocole de mesure reproductible
+
+1. Extraire les runs GitHub Actions des workflows de release sur la période.
+2. Lister les releases publiées et leurs timestamps.
+3. Corréler avec les incidents applicatifs observés dans ELK (niveau `ERROR`, services front/back).
+4. Calculer CFR et MTTR avec les formules ci-dessus.
+5. Documenter les limites si des événements manquent (ex: incident non tracé).
+
 ## 6. Ce qu'on attend généralement d'un bon document DORA
 
 - une définition simple de chaque métrique;
@@ -147,3 +171,10 @@ Dans MicroCRM, ils peuvent être reliés à :
 - les tests;
 - les logs ELK;
 - les corrections d'incident.
+
+## 10. Préconisations opérationnelles (version projet)
+
+- Réduire la variance du lead time en imposant une revue PR sous 24h pour les changements orientés release.
+- Suivre CFR/MTTR à chaque sprint avec une fenêtre glissante de 30 jours.
+- Conserver la release automatique pour la cadence standard, et la release manuelle pour les jalons exceptionnels.
+- Ajouter une alerte Kibana sur le volume d'erreurs post-release pour accélérer la détection d'incident.

@@ -284,3 +284,57 @@ Si Kibana demande un écrasement d'objets existants, l'accepter seulement si tu 
 Le dépôt contient aussi un schéma global du workflow, de la sauvegarde et de la reprise dans [misc/workflow-global.svg](misc/workflow-global.svg). Il résume le chemin complet: développement, CI, déploiement Docker, monitoring ELK, export Kibana, sauvegarde et reprise.
 
 ![Schéma du workflow global](./misc/workflow-global.svg)
+
+## Politique de release
+
+Le projet utilise deux circuits de release, volontairement distincts:
+
+- CI automatique (`.github/workflows/ci.yml`): la version est calculée par `semantic-release` depuis l'historique des commits conventionnels. Ce circuit publie les packages et les images Docker de release après validations qualité et tests.
+- CI manuelle (`.github/workflows/manual-release.yml`): la version est calculée manuellement selon le choix utilisateur (`major`/`minor`/`patch`) et la note de release est un commentaire libre (`release_notes`).
+
+Rationale:
+
+- Le circuit automatique sert à industrialiser les livraisons normales.
+- Le circuit manuel sert aux releases exceptionnelles pilotées par un PO (jalon, annonce, lot documentaire) tout en conservant le même comportement de publication.
+
+## Setup rapide examinateur
+
+Objectif: cloner le dépôt, démarrer, puis visualiser immédiatement un dashboard Kibana préchargé.
+
+1. Cloner le dépôt et se placer à la racine.
+2. Démarrer ELK:
+
+```bash
+docker compose -f docker-compose-elk.yml up -d
+```
+
+3. Démarrer l'application:
+
+```bash
+docker compose up -d --build
+```
+
+4. Vérifier les points d'accès:
+
+- Front: `http://localhost`
+- Back: `http://localhost:8080/actuator/health`
+- Kibana: `http://localhost:5601`
+
+5. Ouvrir Kibana et contrôler:
+
+- Data view `microcrm-logs-*`
+- Dashboard `Flux front/back`
+
+Hypotheses d'execution:
+
+- Docker Desktop est disponible.
+- Les ports 80, 8080, 5601, 9200, 5044 sont libres.
+- Le premier démarrage peut prendre plusieurs minutes (pull images + initialisation).
+
+## Synthese finale des livrables
+
+- CI/CD modulaire avec tests, analyse Sonar, build/push d'images et release.
+- Monitoring centralise front/back via ELK, avec dashboard Kibana exportable (`misc/kibana/export.ndjson`).
+- Plan de sauvegarde/reprise documente, avec scripts de restauration et d'export/import.
+- Documentation DORA/KPI disponible (`PLAN_DORA.md`, `RAPPORT_DORA.md`) avec lecture des flux `branches -> dev` et `dev -> main`.
+- Circuit de release automatique et circuit manuel documentes et distincts.

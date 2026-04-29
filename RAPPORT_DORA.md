@@ -63,3 +63,28 @@
 - Le lead time est estimé entre le premier commit de la PR et le merge final.
 - Par défaut, si start_date ou end_date sont vides, le workflow prend la vie complète du flux considéré.
 - Le rapport est écrit dans artifacts/dora-report.md et peut être publié comme artefact.
+
+## CFR et MTTR (complément)
+
+### Hypothèses utilisées
+
+- Le périmètre de changement couvre les releases CI automatiques et les releases manuelles publiées.
+- Un échec de changement est retenu en cas de rollback, correctif urgent post-release, ou incident confirmé dans les logs applicatifs.
+- Le retour à l'état stable est validé par un pipeline vert et un service fonctionnel.
+
+### Formules
+
+- `CFR = (releases en échec / releases totales) * 100`
+- `MTTR = somme des durées de rétablissement / nombre d'incidents`
+
+### Statut sur ce rapport
+
+- Lead time et fréquence: mesurés dans les tableaux ci-dessus.
+- CFR: non consolidé automatiquement dans cette extraction (données incident/release à corréler).
+- MTTR: non consolidé automatiquement dans cette extraction (journal d'incident non structuré sur la période).
+
+### Actions pour la prochaine itération
+
+1. Ajouter un export automatique des runs de release (succès/échec) dans le workflow DORA.
+2. Ajouter un journal d'incidents simple (timestamp début/fin, cause, PR/release liée).
+3. Publier CFR et MTTR calculés à chaque génération de rapport.

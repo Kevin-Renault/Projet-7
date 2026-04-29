@@ -87,3 +87,56 @@ Le périmètre de sauvegarde/reprise du projet couvre surtout :
 - la configuration Docker et d'environnement.
 
 Le sujet reste simple tant que la base n'est pas persistée. Le plan devient réellement opérationnel dès qu'un stockage durable est ajouté.
+
+## 7. Procédure snapshot Elasticsearch (opérationnelle)
+
+Cette section complète le plan avec un mode opératoire concret pour les logs ELK.
+
+### Prérequis
+
+- Une stack Elasticsearch/Kibana démarrable en local.
+- Un dossier snapshots monté dans le conteneur Elasticsearch sur `/usr/share/elasticsearch/snapshots`.
+- `curl` disponible sur la machine d'exécution.
+
+### Export/sauvegarde logique (jeu de données)
+
+Pour exporter les index `microcrm-logs-*` vers des fichiers JSON:
+
+```bash
+./scripts/elasticdump-export.sh
+```
+
+### Restauration snapshot
+
+Pour restaurer un snapshot ES (repository + snapshot):
+
+```bash
+./scripts/restore-snapshot.sh my_backup snapshot_2026_04_27
+```
+
+### Import de dumps JSON
+
+Pour rejouer des exports `elasticdump` vers un ES local:
+
+```bash
+./scripts/elasticdump-import.sh ./dumps
+```
+
+### Vérifications post-reprise
+
+- Vérifier l'état ES: `curl -s http://localhost:9200/_cat/indices?v | grep microcrm-logs`.
+- Vérifier Kibana: accès `http://localhost:5601` et présence de la data view `microcrm-logs-*`.
+- Vérifier dashboard: `Flux front/back` visible et alimenté.
+
+## 8. Hypothèses RPO/RTO
+
+- RPO cible (logs de démonstration): perte acceptable entre deux exports/snapshots programmés.
+- RTO cible (environnement local): reprise en moins de 30 minutes (redémarrage, restauration, vérification).
+
+Ces cibles restent indicatives tant que le projet n'utilise pas une base métier persistante de production.
+
+## 9. Dernier kilomètre pour industrialisation
+
+- Brancher une base persistante pour les données métier (au lieu d'un mode transitoire).
+- Planifier un job périodique de snapshot/export (cron CI ou ordonnanceur externe).
+- Ajouter une preuve automatique de restauration (workflow dédié de test de reprise).
