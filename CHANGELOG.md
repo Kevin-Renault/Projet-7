@@ -1,3 +1,17 @@
+# [3.1.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v3.0.0...v3.1.0-dev.1) (2026-04-29)
+
+
+### Bug Fixes
+
+* **elk:** export file ([5e23b94](https://github.com/Kevin-Renault/Projet-7/commit/5e23b9477df9142dc62317e1372567936299c0ae))
+* **kibana:** update saved search column to http_path in export.ndjson ([27d590d](https://github.com/Kevin-Renault/Projet-7/commit/27d590d4c071d7614561970922c44272171740dd))
+
+
+### Features
+
+* **elk:** add sample logs and ES import script; wire es-import into docker-compose ([a4b7906](https://github.com/Kevin-Renault/Projet-7/commit/a4b7906094e34e5c540c9f959ad3c64f89430ad7))
+* **elk:** import Kibana saved objects and sample logs directly from compose ([8e10a43](https://github.com/Kevin-Renault/Projet-7/commit/8e10a433287ec81e8844997a77993f163b33c8cc))
+
 ## [2.1.1](https://github.com/Kevin-Renault/Projet-7/compare/v2.1.0...v2.1.1) (2026-04-24)
 
 
