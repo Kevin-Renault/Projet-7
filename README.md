@@ -49,7 +49,7 @@ Ce [monorepo](https://en.wikipedia.org/wiki/Monorepo) contient les 2 composantes
 3. Démarrer le service:
 
    ```shell
-   java -jar build/libs/microcrm-0.0.1-SNAPSHOT.jar
+   java -jar build/libs/microcrm.jar
    ```
 
 Puis ouvrir l'URL http://localhost:8080 dans votre navigateur.
