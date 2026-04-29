@@ -1,3 +1,10 @@
+## [3.2.1](https://github.com/Kevin-Renault/Projet-7/compare/v3.2.0...v3.2.1) (2026-04-29)
+
+
+### Bug Fixes
+
+* add token and action ([d562633](https://github.com/Kevin-Renault/Projet-7/commit/d562633a9e4214a0d76e2df7ccdbd8750da038e3))
+
 # [3.2.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.1.1...v3.2.0) (2026-04-29)
 
 
