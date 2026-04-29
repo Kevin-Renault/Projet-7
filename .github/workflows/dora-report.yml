@@ -18,6 +18,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   generate-report:
@@ -39,6 +40,7 @@ jobs:
           START_INPUT: ${{ github.event.inputs.start_date }}
           END_INPUT: ${{ github.event.inputs.end_date }}
           OUTPUT_PATH: ${{ github.event.inputs.output_path }}
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         run: |
           set -euo pipefail
 
