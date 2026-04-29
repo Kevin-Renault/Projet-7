@@ -77,6 +77,42 @@ jobs:
           set -euo pipefail
           node scripts/sync-version.js "$next_version"
 
+      - name: Install changelog tooling
+        run: |
+          npm install --global conventional-changelog-cli || true
+
+      - name: Generate and commit CHANGELOG.md
+        shell: bash
+        run: |
+          set -euo pipefail
+          # base_version was exported earlier; if none, leave FROM empty
+          FROM_TAG=""
+          if [[ -n "${base_version:-}" && "${base_version}" != "0.0.0" ]]; then
+            FROM_TAG="v${base_version}"
+          fi
+
+          TMPFILE=$(mktemp)
+          if [[ -n "$FROM_TAG" ]]; then
+            npx conventional-changelog -p angular --from "$FROM_TAG" --to HEAD > "$TMPFILE" || true
+          else
+            npx conventional-changelog -p angular --to HEAD > "$TMPFILE" || true
+          fi
+
+          DATE=$(date -u +%Y-%m-%d)
+          HEADER="## v${next_version} - ${DATE}\n\n${{ inputs.release_notes }}\n\n"
+
+          # Build new CHANGELOG.md: header + generated fragment + existing changelog
+          echo -e "$HEADER" > CHANGELOG.new.md
+          cat "$TMPFILE" >> CHANGELOG.new.md || true
+          if [[ -f CHANGELOG.md ]]; then
+            echo -e "\n\n" >> CHANGELOG.new.md
+            cat CHANGELOG.md >> CHANGELOG.new.md
+          fi
+          mv CHANGELOG.new.md CHANGELOG.md
+
+          git add CHANGELOG.md || true
+          git commit -m "docs(changelog): v${next_version} - ${DATE}" || echo "No changelog changes"
+
       - name: Ensure Gradle wrapper is executable
         working-directory: back
         run: chmod +x ./gradlew || true
@@ -95,6 +131,79 @@ jobs:
       - name: Build frontend package
         working-directory: front
         run: npm ci && npm run build
+
+      - name: Prepare release metadata
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          FRONTEND_PACKAGE_NAME=$(node -p "require('./front/package.json').name.split('/').pop()")
+          if [[ "${next_version}" == *-* ]]; then
+            NPM_DIST_TAG=$(echo "${next_version}" | sed -E 's/^[^-]+-([^.]+).*/\1/')
+          else
+            NPM_DIST_TAG=latest
+          fi
+          echo "GITHUB_PACKAGES_SCOPE=@${OWNER}" >> "$GITHUB_ENV"
+          echo "FRONTEND_PACKAGE_NAME=${FRONTEND_PACKAGE_NAME}" >> "$GITHUB_ENV"
+          echo "NPM_DIST_TAG=${NPM_DIST_TAG}" >> "$GITHUB_ENV"
+
+      - name: Install frontend dependencies
+        if: always()
+        working-directory: front
+        run: npm ci
+
+      - name: Publish frontend package to GitHub Packages
+        if: always()
+        working-directory: front
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+          GITHUB_PACKAGES_SCOPE: ${{ env.GITHUB_PACKAGES_SCOPE }}
+          FRONTEND_PACKAGE_NAME: ${{ env.FRONTEND_PACKAGE_NAME }}
+          NPM_DIST_TAG: ${{ env.NPM_DIST_TAG }}
+        run: |
+          printf '%s:registry=https://npm.pkg.github.com/\n//npm.pkg.github.com/:_authToken=%s\n' "${GITHUB_PACKAGES_SCOPE}" "${NODE_AUTH_TOKEN}" > .npmrc
+          npm pkg set name="${GITHUB_PACKAGES_SCOPE}/${FRONTEND_PACKAGE_NAME}"
+          npm pkg set repository.type="git"
+          npm pkg set repository.url="git+https://github.com/${{ github.repository }}.git"
+          npm pkg delete private || true
+          npm pkg set publishConfig.registry="https://npm.pkg.github.com"
+          echo "Publishing frontend package: ${GITHUB_PACKAGES_SCOPE}/${FRONTEND_PACKAGE_NAME}@${next_version} with npm tag ${NPM_DIST_TAG}"
+          npm publish --tag "${NPM_DIST_TAG}"
+
+      - name: Prepare Docker image names
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "REPO_LOWER=${REPO_LOWER}" >> "$GITHUB_ENV"
+          echo "BACKEND_IMAGE=ghcr.io/${REPO_LOWER}/backend:v${next_version}" >> "$GITHUB_ENV"
+          echo "FRONTEND_IMAGE=ghcr.io/${REPO_LOWER}/frontend:v${next_version}" >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.ACTIONS_TOKEN }}
+
+      - name: Build and push backend image
+        run: |
+          docker buildx build \
+            --cache-from type=gha,scope=back \
+            --cache-to type=gha,mode=max,scope=back \
+            --target back \
+            --tag "${BACKEND_IMAGE}" \
+            --push \
+            .
+
+      - name: Build and push frontend image
+        run: |
+          docker buildx build \
+            --cache-from type=gha,scope=front \
+            --cache-to type=gha,mode=max,scope=front \
+            --target front \
+            --tag "${FRONTEND_IMAGE}" \
+            --push \
+            .
 
       - name: Commit version bump
         shell: bash
