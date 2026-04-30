@@ -195,7 +195,7 @@ L'application sera disponible sur https://localhost et l'API sur http://localhos
 
 ### Stack ELK locale
 
-Pour centraliser les logs applicatifs en local, lancer d'abord la stack ELK dédiée :
+Pour centraliser les logs applicatifs en local, lancer d'abord la stack ELK dédiée (Elasticsearch, Logstash et Kibana) :
 
 ```shell
 docker compose -f docker-compose-elk.yml up -d

@@ -18,15 +18,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Rend les scripts de sauvegarde/restauration exécutables dans le runner GitHub Actions.
       - name: Prepare scripts
         run: chmod +x scripts/*.sh
 
+      # Installe elasticdump pour exporter/importer les index Elasticsearch pendant le test.
       - name: Install elasticdump
         run: npm install -g elasticdump
 
+      # Démarre uniquement la partie ELK nécessaire au test de reprise.
       - name: Start Elasticsearch and Kibana
         run: docker compose -f docker-compose-elk.yml up -d elasticsearch kibana
 
+      # Attend que les services soient réellement disponibles avant de continuer.
       - name: Wait for Elasticsearch and Kibana
         run: |
           set -euo pipefail
@@ -39,6 +43,7 @@ jobs:
             sleep 3
           done
 
+      # Injecte une donnée minimale pour vérifier qu'une restauration récupère bien un index réel.
       - name: Seed test data
         run: |
           set -euo pipefail
@@ -50,9 +55,11 @@ jobs:
           echo "PRE_COUNT=${PRE_COUNT}" >> "$GITHUB_ENV"
           echo "SEED_TIME=$(date +%s)" >> "$GITHUB_ENV"
 
+      # Exporte les index pour simuler une sauvegarde avant incident.
       - name: Backup indexes to dumps
         run: ./scripts/elasticdump-export.sh
 
+      # Simule une perte de données en supprimant l'index puis rejoue l'import.
       - name: Simulate incident and restore
         run: |
           set -euo pipefail
@@ -67,6 +74,7 @@ jobs:
 
           ./scripts/elasticdump-import.sh ./dumps
 
+      # Vérifie que la restauration a bien recréé des documents et produit un rapport.
       - name: Validate restoration and produce report
         run: |
           set -euo pipefail
@@ -85,12 +93,14 @@ jobs:
             echo
             echo "- Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
             echo "- Timestamp (UTC): $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          # Archive le rapport pour pouvoir relire le résultat dans l'onglet Actions.
             echo "- Pre-incident docs: ${PRE_COUNT}"
             echo "- Post-restore docs: ${POST_COUNT}"
             echo "- Recovery status: PASS"
             echo "- Observed RTO: ${RTO_SECONDS} seconds"
           } > artifacts/recovery-test-report.md
 
+        # Nettoie la stack ELK même si une étape a échoué.
       - name: Upload recovery report
         uses: actions/upload-artifact@v4
         with:
