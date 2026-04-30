@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import os
+import subprocess
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -44,6 +45,23 @@ def average(values: list[float]) -> str:
     if not values:
         return "n/a"
     return f"{sum(values) / len(values):.2f}"
+
+
+def format_readable_date(value: dt.datetime) -> str:
+    return value.astimezone(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+
+def branch_creation_date() -> dt.datetime:
+    completed = subprocess.run(
+        ["git", "log", "--first-parent", "--reverse", "--format=%aI", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    first_line = next((line for line in completed.stdout.splitlines() if line.strip()), "")
+    if not first_line:
+        return dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc)
+    return parse_iso(first_line)
 
 
 def collect_relevant_runs(repo: str, token: str, since: dt.datetime, until: dt.datetime) -> list[dict[str, object]]:
@@ -112,11 +130,13 @@ def write_report(
     total_runs: int,
 ) -> None:
     success_rate = f"{(success_count / total_runs) * 100:.2f}" if total_runs else "n/a"
+    readable_since = format_readable_date(since)
+    readable_until = format_readable_date(until)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as stream:
         stream.write("# Rapport KPI automatique\n\n")
-        stream.write(f"- Période analysée: {since.isoformat()} -> {until.isoformat()}\n")
+        stream.write(f"- Période analysée: {readable_since} -> {readable_until}\n")
         stream.write("- Périmètre: runs du workflow `ci.yml` sur `main` avec event `push`\n\n")
 
         stream.write("## Tableau de synthèse\n\n")
@@ -143,7 +163,7 @@ def main() -> None:
     end_date = os.environ.get("END_DATE", "")
     output_path = Path(os.environ.get("OUTPUT_PATH", "artifacts/kpi-report.md"))
 
-    since = normalize_start(start_date)
+    since = normalize_start(start_date) if start_date else branch_creation_date()
     until = normalize_end(end_date)
     runs = collect_relevant_runs(repo, token, since, until)
     durations, success_count, _ = collect_durations(repo, token, runs, since, until)
