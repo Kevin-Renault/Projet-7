@@ -1,10 +1,16 @@
-# [3.2.0-dev.2](https://github.com/Kevin-Renault/Projet-7/compare/v3.2.0-dev.1...v3.2.0-dev.2) (2026-04-30)
+## [3.2.1](https://github.com/Kevin-Renault/Projet-7/compare/v3.2.0...v3.2.1) (2026-04-29)
+
+
+### Bug Fixes
+
+* add token and action ([d562633](https://github.com/Kevin-Renault/Projet-7/commit/d562633a9e4214a0d76e2df7ccdbd8750da038e3))
+
+# [3.2.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.1.1...v3.2.0) (2026-04-29)
 
 
 ### Features
 
-* **elk:** add Logstash to ELK compose ([c5db9c1](https://github.com/Kevin-Renault/Projet-7/commit/c5db9c1f0385528415bfdbf609b3d72c2b32143b))
-* **recovery:** validate ELK restore workflow ([4c27cfb](https://github.com/Kevin-Renault/Projet-7/commit/4c27cfbb68199ce3689e31172fe5101fb0314f56))
+* **dora:** add automated CFR/MTTR and final 4-metric ([b468b08](https://github.com/Kevin-Renault/Projet-7/commit/b468b089b960b795bf4eacc96eee7511c15b5950))
 
 # [3.2.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v3.1.1...v3.2.0-dev.1) (2026-04-29)
 
