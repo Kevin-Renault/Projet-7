@@ -1,3 +1,11 @@
+# [3.3.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v3.2.1...v3.3.0-dev.1) (2026-04-30)
+
+
+### Features
+
+* **elk:** add Logstash to ELK compose ([c5db9c1](https://github.com/Kevin-Renault/Projet-7/commit/c5db9c1f0385528415bfdbf609b3d72c2b32143b))
+* **recovery:** validate ELK restore workflow ([4c27cfb](https://github.com/Kevin-Renault/Projet-7/commit/4c27cfbb68199ce3689e31172fe5101fb0314f56))
+
 ## [3.2.1](https://github.com/Kevin-Renault/Projet-7/compare/v3.2.0...v3.2.1) (2026-04-29)
 
 

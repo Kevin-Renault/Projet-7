@@ -1,0 +1,102 @@
+name: Recovery Test
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  recovery-test:
+    name: Backup/Restore Recovery Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare scripts
+        run: chmod +x scripts/*.sh
+
+      - name: Install elasticdump
+        run: npm install -g elasticdump
+
+      - name: Start Elasticsearch and Kibana
+        run: docker compose -f docker-compose-elk.yml up -d elasticsearch kibana
+
+      - name: Wait for Elasticsearch and Kibana
+        run: |
+          set -euo pipefail
+          until curl -sSf http://localhost:9200 >/dev/null; do
+            echo "Waiting for Elasticsearch..."
+            sleep 2
+          done
+          until curl -sSf http://localhost:5601/api/status >/dev/null; do
+            echo "Waiting for Kibana..."
+            sleep 3
+          done
+
+      - name: Seed test data
+        run: |
+          set -euo pipefail
+          NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          curl -sS -X POST "http://localhost:9200/microcrm-logs-recovery-ci/_doc?refresh=true" \
+            -H 'Content-Type: application/json' \
+            -d "{\"@timestamp\":\"${NOW}\",\"service\":\"recovery-test\",\"message\":\"seed\",\"level\":\"INFO\"}" >/dev/null
+          PRE_COUNT=$(curl -sS "http://localhost:9200/microcrm-logs-recovery-ci/_count" | jq -r '.count')
+          echo "PRE_COUNT=${PRE_COUNT}" >> "$GITHUB_ENV"
+          echo "SEED_TIME=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Backup indexes to dumps
+        run: ./scripts/elasticdump-export.sh
+
+      - name: Simulate incident and restore
+        run: |
+          set -euo pipefail
+          curl -sS -X DELETE "http://localhost:9200/microcrm-logs-recovery-ci" >/dev/null
+          if curl -sS -o /dev/null -w "%{http_code}" "http://localhost:9200/microcrm-logs-recovery-ci" | grep -q "200"; then
+            echo "Index was not deleted"
+            exit 1
+          fi
+
+          INCIDENT_TIME=$(date +%s)
+          echo "INCIDENT_TIME=${INCIDENT_TIME}" >> "$GITHUB_ENV"
+
+          ./scripts/elasticdump-import.sh ./dumps
+
+      - name: Validate restoration and produce report
+        run: |
+          set -euo pipefail
+          POST_COUNT=$(curl -sS "http://localhost:9200/microcrm-logs-recovery-ci/_count" | jq -r '.count')
+          if [ "${POST_COUNT}" -lt 1 ]; then
+            echo "Restore validation failed: expected at least 1 document, got ${POST_COUNT}"
+            exit 1
+          fi
+
+          RECOVERY_TIME=$(date +%s)
+          RTO_SECONDS=$((RECOVERY_TIME - INCIDENT_TIME))
+
+          mkdir -p artifacts
+          {
+            echo "# Recovery test report"
+            echo
+            echo "- Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "- Timestamp (UTC): $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+            echo "- Pre-incident docs: ${PRE_COUNT}"
+            echo "- Post-restore docs: ${POST_COUNT}"
+            echo "- Recovery status: PASS"
+            echo "- Observed RTO: ${RTO_SECONDS} seconds"
+          } > artifacts/recovery-test-report.md
+
+      - name: Upload recovery report
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovery-test-report
+          path: artifacts/recovery-test-report.md
+
+      - name: Stop stack
+        if: always()
+        run: docker compose -f docker-compose-elk.yml down -v
