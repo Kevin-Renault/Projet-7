@@ -1,0 +1,48 @@
+name: KPI Report
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "Date de début au format YYYY-MM-DD. Vide = début de la période analysée."
+        required: false
+        default: ""
+      end_date:
+        description: "Date de fin au format YYYY-MM-DD. Vide = fin de la période analysée."
+        required: false
+        default: ""
+      output_path:
+        description: "Chemin du fichier Markdown généré"
+        required: false
+        default: "artifacts/kpi-report.md"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate KPI report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          START_DATE: ${{ github.event.inputs.start_date }}
+          END_DATE: ${{ github.event.inputs.end_date }}
+          OUTPUT_PATH: ${{ github.event.inputs.output_path }}
+        run: |
+          python3 .github/scripts/generate-kpi-report.py
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kpi-report
+          path: ${{ github.event.inputs.output_path }}
+          if-no-files-found: error
