@@ -1,3 +1,10 @@
+# [3.4.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.3.0...v3.4.0) (2026-04-30)
+
+
+### Features
+
+* **kpi:** add KPI reporting workflow and generator scrip ([fbe03a1](https://github.com/Kevin-Renault/Projet-7/commit/fbe03a19612c58e77cb12f19a99202970ab9d1e9))
+
 # [3.3.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.2.1...v3.3.0) (2026-04-30)
 
 
