@@ -1,11 +1,4 @@
-# [3.4.0-dev.2](https://github.com/Kevin-Renault/Projet-7/compare/v3.4.0-dev.1...v3.4.0-dev.2) (2026-04-30)
-
-
-### Features
-
-* **kpi:** use branch creation date and readable period in KPI report ([8c53885](https://github.com/Kevin-Renault/Projet-7/commit/8c53885a270160fccce2d38fa75f1f12d719856c))
-
-# [3.4.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v3.3.0...v3.4.0-dev.1) (2026-04-30)
+# [3.4.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.3.0...v3.4.0) (2026-04-30)
 
 
 ### Features
