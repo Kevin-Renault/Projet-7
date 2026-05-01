@@ -1,3 +1,10 @@
+## [3.5.1-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v3.5.0...v3.5.1-dev.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* display report in summary GitHub Actions ([9f8cf75](https://github.com/Kevin-Renault/Projet-7/commit/9f8cf752bc5c061bbbcf35962da16e00e2d7c164))
+
 # [3.5.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.4.0...v3.5.0) (2026-04-30)
 
 
