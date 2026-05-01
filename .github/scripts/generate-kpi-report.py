@@ -4,6 +4,7 @@ import datetime as dt
 import json
 import os
 import subprocess
+from collections import defaultdict
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -45,6 +46,12 @@ def average(values: list[float]) -> str:
     if not values:
         return "n/a"
     return f"{sum(values) / len(values):.2f}"
+
+
+def format_delta(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value:+.2f}"
 
 
 def format_readable_date(value: dt.datetime) -> str:
@@ -136,12 +143,46 @@ def collect_durations(
     return durations, success_count, failure_count
 
 
+def build_daily_pipeline_max_rows(runs: list[dict[str, object]]) -> list[dict[str, object]]:
+    grouped_runs: dict[str, list[dict[str, object]]] = defaultdict(list)
+
+    for run in runs:
+        created = run.get("created")
+        duration = run.get("duration_minutes")
+        if not isinstance(created, dt.datetime) or not isinstance(duration, (int, float)):
+            continue
+        day_key = created.astimezone(dt.timezone.utc).strftime("%Y-%m-%d")
+        grouped_runs[day_key].append(run)
+
+    rows: list[dict[str, object]] = []
+    previous_max: float | None = None
+
+    for day_key in sorted(grouped_runs):
+        day_runs = grouped_runs[day_key]
+        max_run = max(day_runs, key=lambda item: float(item["duration_minutes"]))
+        max_duration = float(max_run["duration_minutes"])
+        delta = None if previous_max is None else max_duration - previous_max
+        rows.append(
+            {
+                "day": day_key,
+                "run_count": len(day_runs),
+                "max_duration": max_duration,
+                "run_id": max_run["id"],
+                "delta": delta,
+            }
+        )
+        previous_max = max_duration
+
+    return rows
+
+
 def write_report(
     output_path: Path,
     since: dt.datetime,
     until: dt.datetime,
     durations: dict[str, list[float]],
     pipeline_durations: list[float],
+    daily_pipeline_max_rows: list[dict[str, object]],
     success_count: int,
     total_runs: int,
 ) -> None:
@@ -165,9 +206,23 @@ def write_report(
         stream.write(f"| Temps moyen de la pipeline complète | {average(pipeline_durations)} min | Run complet du workflow `ci.yml` | De `run_started_at` à `updated_at` |\n")
         stream.write(f"| Taux de succès CI | {success_rate}% | Runs du workflow `ci.yml` | Succès / total des runs analysés |\n\n")
 
+        stream.write("## Tableau journalier du temps max de pipeline\n\n")
+        stream.write("| Jour (UTC) | Nombre de runs | Temps max pipeline (min) | Run concerné | Écart vs veille |\n")
+        stream.write("| --- | ---: | ---: | --- | ---: |\n")
+        if daily_pipeline_max_rows:
+            for row in daily_pipeline_max_rows:
+                stream.write(
+                    f"| {row['day']} | {row['run_count']} | {row['max_duration']:.2f} | {row['run_id']} | {format_delta(row['delta'])} |\n"
+                )
+        else:
+            stream.write("| - | - | - | - | Aucune donnée exploitable |\n")
+        stream.write("\n")
+
         stream.write("## Méthode de calcul\n\n")
         stream.write("- Les runs sont extraits via l'API GitHub Actions pour `ci.yml` sur `main`.\n")
         stream.write("- Les durées sont calculées avec `started_at` et `completed_at` de chaque job.\n")
+        stream.write("- La durée complète de pipeline est calculée entre `run_started_at` et `updated_at` pour chaque run.\n")
+        stream.write("- Le tableau journalier retient pour chaque jour le run ayant la durée totale maximale, avec son écart par rapport à la veille.\n")
         stream.write("- Les indicateurs suivent les dimensions utiles du projet: build, tests, qualité SonarQube et stabilité du pipeline.\n")
         stream.write("- Si les dates sont vides, le script prend une fenêtre large couvrant l'historique disponible.\n")
         stream.write("- Le rapport est généré au format Markdown et peut être publié comme artefact.\n")
@@ -184,8 +239,9 @@ def main() -> None:
     until = normalize_end(end_date)
     runs = collect_relevant_runs(repo, token, since, until)
     pipeline_durations = [run["duration_minutes"] for run in runs if isinstance(run.get("duration_minutes"), (int, float))]
+    daily_pipeline_max_rows = build_daily_pipeline_max_rows(runs)
     durations, success_count, _ = collect_durations(repo, token, runs, since, until)
-    write_report(output_path, since, until, durations, pipeline_durations, success_count, len(runs))
+    write_report(output_path, since, until, durations, pipeline_durations, daily_pipeline_max_rows, success_count, len(runs))
 
 
 if __name__ == "__main__":
