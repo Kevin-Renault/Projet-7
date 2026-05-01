@@ -20,17 +20,18 @@ public class FrontMonitoringController {
 
     @PostMapping("/front-logs")
     public ResponseEntity<Void> receive(@RequestBody FrontMonitoringEvent event) {
-        log.info("front monitoring event",
-                StructuredArguments.kv("service", event.service()),
-                StructuredArguments.kv("component", event.component()),
-                StructuredArguments.kv("level", event.level()),
-                StructuredArguments.kv("message", event.message()),
-                StructuredArguments.kv("method", event.method()),
-                StructuredArguments.kv("url", event.url()),
-                StructuredArguments.kv("status", event.status()),
-                StructuredArguments.kv("duration_ms", event.durationMs()),
-                StructuredArguments.kv("error_name", event.errorName()),
-                StructuredArguments.kv("error_message", event.errorMessage()));
+        log.atInfo()
+                .addArgument(StructuredArguments.kv("service", event.service()))
+                .addArgument(StructuredArguments.kv("component", event.component()))
+                .addArgument(StructuredArguments.kv("level", event.level()))
+                .addArgument(StructuredArguments.kv("message", event.message()))
+                .addArgument(StructuredArguments.kv("method", event.method()))
+                .addArgument(StructuredArguments.kv("url", event.url()))
+                .addArgument(StructuredArguments.kv("status", event.status()))
+                .addArgument(StructuredArguments.kv("duration_ms", event.durationMs()))
+                .addArgument(StructuredArguments.kv("error_name", event.errorName()))
+                .addArgument(StructuredArguments.kv("error_message", event.errorMessage()))
+                .log("front monitoring event");
 
         return ResponseEntity.noContent().build();
     }
