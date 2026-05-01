@@ -38,11 +38,12 @@ class EndpointRequestLoggingFilter extends OncePerRequestFilter {
         } finally {
             long durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
             int status = response.getStatus();
-            log.info("http_request",
-                    StructuredArguments.kv("http_method", httpMethod),
-                    StructuredArguments.kv("http_path", pathWithQuery),
-                    StructuredArguments.kv("http_status", status),
-                    StructuredArguments.kv("http_duration_ms", durationMs));
+            log.atInfo()
+                    .addArgument(StructuredArguments.kv("http_method", httpMethod))
+                    .addArgument(StructuredArguments.kv("http_path", pathWithQuery))
+                    .addArgument(StructuredArguments.kv("http_status", status))
+                    .addArgument(StructuredArguments.kv("http_duration_ms", durationMs))
+                    .log("http_request");
         }
     }
 }
