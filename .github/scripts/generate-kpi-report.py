@@ -71,13 +71,28 @@ def collect_relevant_runs(repo: str, token: str, since: dt.datetime, until: dt.d
     relevant_runs: list[dict[str, object]] = []
     for run in payload.get("workflow_runs", []):
         created_at = run.get("created_at")
+        run_started_at = run.get("run_started_at")
+        updated_at = run.get("updated_at")
         run_id = run.get("id")
         conclusion = run.get("conclusion")
         if not created_at or not run_id or conclusion not in {"success", "failure"}:
             continue
         created = parse_iso(created_at)
         if since <= created <= until:
-            relevant_runs.append({"id": run_id, "created": created, "conclusion": conclusion})
+            run_duration_minutes: float | None = None
+            if run_started_at and updated_at:
+                started = parse_iso(run_started_at)
+                finished = parse_iso(updated_at)
+                run_duration_minutes = max((finished - started).total_seconds() / 60, 0)
+
+            relevant_runs.append(
+                {
+                    "id": run_id,
+                    "created": created,
+                    "conclusion": conclusion,
+                    "duration_minutes": run_duration_minutes,
+                }
+            )
 
     relevant_runs.sort(key=lambda item: item["created"])
     return relevant_runs
@@ -126,6 +141,7 @@ def write_report(
     since: dt.datetime,
     until: dt.datetime,
     durations: dict[str, list[float]],
+    pipeline_durations: list[float],
     success_count: int,
     total_runs: int,
 ) -> None:
@@ -146,6 +162,7 @@ def write_report(
         stream.write(f"| Temps moyen de build frontend | {average(durations['build-and-push-frontend'])} min | Job `build-and-push-frontend` dans `ci.yml` | Moyenne sur la période |\n")
         stream.write(f"| Temps moyen des tests | {average(durations['test-application'])} min | Job `test-application` dans `ci.yml` | Moyenne sur la période |\n")
         stream.write(f"| Temps moyen de SonarQube | {average(durations['sonar-analysis'])} min | Job `sonar-analysis` dans `ci.yml` | Moyenne sur la période |\n")
+        stream.write(f"| Temps moyen de la pipeline complète | {average(pipeline_durations)} min | Run complet du workflow `ci.yml` | De `run_started_at` à `updated_at` |\n")
         stream.write(f"| Taux de succès CI | {success_rate}% | Runs du workflow `ci.yml` | Succès / total des runs analysés |\n\n")
 
         stream.write("## Méthode de calcul\n\n")
@@ -166,8 +183,9 @@ def main() -> None:
     since = normalize_start(start_date) if start_date else branch_creation_date()
     until = normalize_end(end_date)
     runs = collect_relevant_runs(repo, token, since, until)
+    pipeline_durations = [run["duration_minutes"] for run in runs if isinstance(run.get("duration_minutes"), (int, float))]
     durations, success_count, _ = collect_durations(repo, token, runs, since, until)
-    write_report(output_path, since, until, durations, success_count, len(runs))
+    write_report(output_path, since, until, durations, pipeline_durations, success_count, len(runs))
 
 
 if __name__ == "__main__":
