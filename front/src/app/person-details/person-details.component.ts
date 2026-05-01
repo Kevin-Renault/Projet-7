@@ -38,29 +38,60 @@ export class PersonDetailsComponent implements OnInit {
   ngOnInit(): void {
     void this.initialize()
 
-    const routeParams = this.route.snapshot.paramMap;
-    const personIdParam = routeParams.get('personId');
+    this.route.paramMap.subscribe(routeParams => {
+      const personIdParam = routeParams.get('personId');
 
-    if (personIdParam === 'new') {
-      this.isNew = true
-    } else if (typeof personIdParam === 'string') {
-      const personId = Number.parseInt(personIdParam)
-      this.personService.fetchById(personId).then(p => {
-        this.person = p
-        this.isNew = false
-      })
-    }
-  }
+      if (personIdParam === 'new') {
+        this.isNew = true
+        this.person = {
+          id: undefined,
+          firstName: '',
+          lastName: '',
+          phone: '',
+          email: '',
+          bio: '',
+          createdAt: new Date(),
+          updatedAt: undefined,
+          organizations: []
+        }
+        return
+      }
 
-  savePerson() {
-    this.personService.save({
-      ...this.person
-    }).then(p => {
-      this.person = p
-      if (this.isNew) {
-        this.router.navigate(["persons", p.id])
+      if (typeof personIdParam === 'string') {
+        const personId = Number.parseInt(personIdParam, 10)
+        if (Number.isFinite(personId)) {
+          this.personService.fetchById(personId).then(p => {
+            this.person = p
+            this.isNew = false
+          })
+        }
       }
     })
+  }
+
+  async savePerson() {
+    const pendingOrganizationIds = this.isNew
+      ? this.person.organizations
+        .map(org => org.id)
+        .filter((id): id is number => id !== undefined)
+      : []
+
+    const savedPerson = await this.personService.save({
+      ...this.person
+    })
+
+    this.person = savedPerson
+
+    if (pendingOrganizationIds.length > 0 && this.person.id !== undefined) {
+      await Promise.all(
+        pendingOrganizationIds.map(orgId => this.organizationService.addPerson(orgId, this.person.id as number))
+      )
+      await this.refresh()
+    }
+
+    if (this.isNew) {
+      this.router.navigate(["persons", this.person.id])
+    }
   }
 
   deletePerson() {
@@ -71,13 +102,30 @@ export class PersonDetailsComponent implements OnInit {
   }
 
   async addSelectedOrganization() {
-    if (this.selectedOrganization?.id === undefined || this.person.id === undefined) return
+    if (this.selectedOrganization?.id === undefined) return
+
+    const alreadyLinked = this.person.organizations.some(org => org.id === this.selectedOrganization?.id)
+    if (alreadyLinked) return
+
+    if (this.person.id === undefined) {
+      this.person.organizations = [...this.person.organizations, this.selectedOrganization]
+      this.selectedOrganization = null
+      return
+    }
+
     await this.organizationService.addPerson(this.selectedOrganization.id, this.person.id)
+    this.selectedOrganization = null
     await this.refresh()
   }
 
   async removeOrganization(org: Organization) {
-    if (org?.id === undefined || this.person.id === undefined) return
+    if (org?.id === undefined) return
+
+    if (this.person.id === undefined) {
+      this.person.organizations = this.person.organizations.filter(linkedOrg => linkedOrg.id !== org.id)
+      return
+    }
+
     await this.organizationService.removePerson(org.id, this.person.id)
     await this.refresh()
   }

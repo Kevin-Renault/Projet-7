@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Organization } from './organization.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { API_BASE_URL } from './config'
 
 @Injectable({ providedIn: 'root' })
@@ -41,28 +41,45 @@ export class PersonService {
   }
 
   async save(person: Person) {
-    let response;
+    const isNew = person.id === undefined
+    let response: HttpResponse<any>;
     if (person.id === undefined) {
-      response = this.client.post(`${API_BASE_URL}/persons`, {
+      response = await firstValueFrom(this.client.post(`${API_BASE_URL}/persons`, {
         firstName: person.firstName,
         lastName: person.lastName,
         bio: person.bio,
         phone: person.phone,
         email: person.email,
-      })
+      }, { observe: 'response' }))
     } else {
-      response = this.client.put(`${API_BASE_URL}/persons/${person.id}`, {
+      response = await firstValueFrom(this.client.put(`${API_BASE_URL}/persons/${person.id}`, {
         firstName: person.firstName,
         lastName: person.lastName,
         bio: person.bio,
         phone: person.phone,
         email: person.email,
-      })
+      }, { observe: 'response' }))
     }
 
-    person = await firstValueFrom(response) as Person
+    const body = response.body as Partial<Person> | null
+    const locationHeader = response.headers.get('Location')
 
-    const organizations = await this.fetchPersonOrganizations(person.id as number)
+    if (body?.id !== undefined) {
+      person = await this.fetchById(body.id)
+    } else if (locationHeader) {
+      const personIdFromLocation = Number.parseInt(locationHeader.split('/').pop() ?? '', 10)
+      if (Number.isFinite(personIdFromLocation)) {
+        person = await this.fetchById(personIdFromLocation)
+      }
+    } else if (!isNew && person.id !== undefined) {
+      person = await this.fetchById(person.id)
+    }
+
+    if (person.id === undefined) {
+      throw new Error('Unable to resolve saved person id from API response')
+    }
+
+    const organizations = await this.fetchPersonOrganizations(person.id)
     person.organizations = organizations
 
     return person
