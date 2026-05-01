@@ -73,7 +73,7 @@ export class OrganizationService {
   async removePerson(orgId: number, personId: number) {
     await firstValueFrom(
       this.client.delete(
-        `${API_BASE_URL}/persons/${personId}/organizations/${orgId}`
+        `${API_BASE_URL}/organizations/${orgId}/persons/${personId}`
       )
     )
   }
