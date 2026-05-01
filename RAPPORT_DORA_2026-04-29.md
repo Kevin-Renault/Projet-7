@@ -1,5 +1,8 @@
 # Rapport DORA automatique
 
+> **Snapshot intermédiaire — 2026-04-29** — rapport généré sur 13 runs GitHub Actions.
+> Le rapport final de référence (20 runs, valeurs retenues pour le livrable) est [`dora-report.md`](dora-report.md).
+
 - Branche d'exécution: main
 - Début demandé: <vide>
 - Fin demandée: <vide>
