@@ -89,9 +89,7 @@ export class PersonDetailsComponent implements OnInit {
       await this.refresh()
     }
 
-    if (this.isNew) {
-      this.router.navigate(["persons", this.person.id])
-    }
+    this.router.navigate([""])
   }
 
   deletePerson() {

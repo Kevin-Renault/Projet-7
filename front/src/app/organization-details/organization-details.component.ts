@@ -46,9 +46,7 @@ export class OrganizationDetailsComponent implements OnInit {
       ...this.org
     }).then(o => {
       this.org = o
-      if (this.isNew) {
-        this.router.navigate(["organizations", o.id])
-      }
+      this.router.navigate([""])
     })
   }
 
