@@ -1,5 +1,8 @@
 # Plan DORA
 
+> **Document de cadrage initial** — rédigé en début de projet pour définir la démarche DORA et contextualiser les 4 métriques dans MicroCRM.
+> Les valeurs calculées et l'analyse finale sont dans [`dora-report.md`](dora-report.md) et [`documentation_finale.md`](documentation_finale.md).
+
 Ce document explique simplement ce que sont les métriques DORA et comment les relier au projet MicroCRM.
 
 ## 1. DORA, c'est quoi ?

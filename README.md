@@ -140,8 +140,7 @@ L'analyse couvre le backend et le frontend dans un seul projet SonarQube.
 - Sur l'écran de détail d'une personne, la liste des organisations pouvait apparaître vide sans erreur manifeste dans les logs applicatifs ni dans la CI, ce qui rendait le défaut peu visible en supervision.
 - Le correctif charge explicitement les organisations au démarrage et synchronise l'affichage après ajout/suppression d'association pour éviter ce faux état vide dans l'IHM.
 - Point critique UX identifié : l'absence de messages explicites côté utilisateur (succès, erreur, action impossible) rend le diagnostic difficile et augmente le risque d'incompréhension fonctionnelle.
-- Point critique UX identifié : après sauvegarde (personne ou organisation), la redirection vers l'URL de l'objet pouvait casser le parcours attendu et désorienter l'utilisateur.
-- Le correctif applique une redirection uniforme vers la page centrale après sauvegarde afin de garder un comportement cohérent et compréhensible pour les utilisateurs.
+- Point critique UX identifié : après sauvegarde (personne ou organisation), la redirection vers l'URL de l'objet n'est pas user friendly, surtout sans message d'information.
 
 ### Préconisations d'usage
 
