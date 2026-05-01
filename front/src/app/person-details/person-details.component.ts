@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Person, PersonService } from '../person.service';
 import { Organization, OrganizationService } from '../organization.service';
+import { MonitoringLoggerService } from '../monitoring-logger.service';
 
 @Component({
   selector: 'app-person-details',
@@ -28,7 +29,7 @@ export class PersonDetailsComponent implements OnInit {
   selectedOrganization: Organization | null = null;
   isNew: boolean = false;
 
-  constructor(readonly route: ActivatedRoute, readonly personService: PersonService, readonly organizationService: OrganizationService, readonly router: Router) {
+  constructor(readonly route: ActivatedRoute, readonly personService: PersonService, readonly organizationService: OrganizationService, readonly router: Router, readonly monitoringLogger: MonitoringLoggerService) {
   }
 
   async initialize() {
@@ -38,35 +39,42 @@ export class PersonDetailsComponent implements OnInit {
   ngOnInit(): void {
     void this.initialize()
 
-    this.route.paramMap.subscribe(routeParams => {
-      const personIdParam = routeParams.get('personId');
+    if (this.route.paramMap && typeof this.route.paramMap.subscribe === 'function') {
+      this.route.paramMap.subscribe(routeParams => {
+        this.handleRouteParam(routeParams.get('personId'))
+      })
+      return
+    }
 
-      if (personIdParam === 'new') {
-        this.isNew = true
-        this.person = {
-          id: undefined,
-          firstName: '',
-          lastName: '',
-          phone: '',
-          email: '',
-          bio: '',
-          createdAt: new Date(),
-          updatedAt: undefined,
-          organizations: []
-        }
-        return
-      }
+    this.handleRouteParam(this.route.snapshot.paramMap.get('personId'))
+  }
 
-      if (typeof personIdParam === 'string') {
-        const personId = Number.parseInt(personIdParam, 10)
-        if (Number.isFinite(personId)) {
-          this.personService.fetchById(personId).then(p => {
-            this.person = p
-            this.isNew = false
-          })
-        }
+  private handleRouteParam(personIdParam: string | null) {
+    if (personIdParam === 'new') {
+      this.isNew = true
+      this.person = {
+        id: undefined,
+        firstName: '',
+        lastName: '',
+        phone: '',
+        email: '',
+        bio: '',
+        createdAt: new Date(),
+        updatedAt: undefined,
+        organizations: []
       }
-    })
+      return
+    }
+
+    if (typeof personIdParam === 'string') {
+      const personId = Number.parseInt(personIdParam, 10)
+      if (Number.isFinite(personId)) {
+        this.personService.fetchById(personId).then(p => {
+          this.person = p
+          this.isNew = false
+        })
+      }
+    }
   }
 
   async savePerson() {
@@ -89,7 +97,9 @@ export class PersonDetailsComponent implements OnInit {
       await this.refresh()
     }
 
-    this.router.navigate([""])
+    if (this.isNew) {
+      this.router.navigate(["persons", this.person.id])
+    }
   }
 
   deletePerson() {
@@ -100,12 +110,16 @@ export class PersonDetailsComponent implements OnInit {
   }
 
   async addSelectedOrganization() {
-    if (this.selectedOrganization?.id === undefined) return
+    if (this.selectedOrganization?.id === undefined) {
+      this.monitoringLogger.logError({ level: 'ERROR', message: 'addSelectedOrganization called with undefined organization id' })
+      return
+    }
 
     const alreadyLinked = this.person.organizations.some(org => org.id === this.selectedOrganization?.id)
     if (alreadyLinked) return
 
     if (this.person.id === undefined) {
+      this.monitoringLogger.logError({ level: 'ERROR', message: `addSelectedOrganization called before person save, adding org id=${this.selectedOrganization.id} locally` })
       this.person.organizations = [...this.person.organizations, this.selectedOrganization]
       this.selectedOrganization = null
       return
@@ -117,9 +131,13 @@ export class PersonDetailsComponent implements OnInit {
   }
 
   async removeOrganization(org: Organization) {
-    if (org?.id === undefined) return
+    if (org?.id === undefined) {
+      this.monitoringLogger.logError({ level: 'ERROR', message: 'removeOrganization called with undefined org id' })
+      return
+    }
 
     if (this.person.id === undefined) {
+      this.monitoringLogger.logError({ level: 'ERROR', message: `removeOrganization called before person save, removing org id=${org.id} locally` })
       this.person.organizations = this.person.organizations.filter(linkedOrg => linkedOrg.id !== org.id)
       return
     }

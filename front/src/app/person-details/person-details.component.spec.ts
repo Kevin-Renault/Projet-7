@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PersonDetailsComponent } from './person-details.component';
 import { PersonService, Person } from '../person.service';
 import { Organization, OrganizationService } from '../organization.service';
+import { MonitoringLoggerService } from '../monitoring-logger.service';
 
 describe('PersonDetailsComponent', () => {
   let component: PersonDetailsComponent;
@@ -11,6 +12,7 @@ describe('PersonDetailsComponent', () => {
   let personServiceSpy: jasmine.SpyObj<PersonService>;
   let organizationServiceSpy: jasmine.SpyObj<OrganizationService>;
   let routerSpy: jasmine.SpyObj<Router>;
+  let monitoringLoggerSpy: jasmine.SpyObj<MonitoringLoggerService>;
   let routeGetSpy: jasmine.Spy;
 
   const johnDoe: Person = {
@@ -38,6 +40,7 @@ describe('PersonDetailsComponent', () => {
     personServiceSpy = jasmine.createSpyObj<PersonService>('PersonService', ['fetchById', 'save', 'deleteById']);
     organizationServiceSpy = jasmine.createSpyObj<OrganizationService>('OrganizationService', ['fetchAll', 'addPerson', 'removePerson']);
     routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    monitoringLoggerSpy = jasmine.createSpyObj<MonitoringLoggerService>('MonitoringLoggerService', ['logError', 'logHttp']);
 
     await TestBed.configureTestingModule({
       imports: [PersonDetailsComponent],
@@ -45,7 +48,8 @@ describe('PersonDetailsComponent', () => {
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: routeGetSpy } } } },
         { provide: PersonService, useValue: personServiceSpy },
         { provide: OrganizationService, useValue: organizationServiceSpy },
-        { provide: Router, useValue: routerSpy }
+        { provide: Router, useValue: routerSpy },
+        { provide: MonitoringLoggerService, useValue: monitoringLoggerSpy }
       ]
     }).compileComponents();
 

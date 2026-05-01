@@ -41,7 +41,6 @@ export class PersonService {
   }
 
   async save(person: Person) {
-    const isNew = person.id === undefined
     let response: HttpResponse<any>;
     if (person.id === undefined) {
       response = await firstValueFrom(this.client.post(`${API_BASE_URL}/persons`, {
@@ -63,26 +62,26 @@ export class PersonService {
 
     const body = response.body as Partial<Person> | null
     const locationHeader = response.headers.get('Location')
-
-    if (body?.id !== undefined) {
-      person = await this.fetchById(body.id)
-    } else if (locationHeader) {
-      const personIdFromLocation = Number.parseInt(locationHeader.split('/').pop() ?? '', 10)
-      if (Number.isFinite(personIdFromLocation)) {
-        person = await this.fetchById(personIdFromLocation)
-      }
-    } else if (!isNew && person.id !== undefined) {
-      person = await this.fetchById(person.id)
+    let resolvedPerson: Person = {
+      ...person,
+      ...(body ?? undefined)
     }
 
-    if (person.id === undefined) {
+    if (resolvedPerson.id === undefined && locationHeader) {
+      const personIdFromLocation = Number.parseInt(locationHeader.split('/').pop() ?? '', 10)
+      if (Number.isFinite(personIdFromLocation)) {
+        resolvedPerson.id = personIdFromLocation
+      }
+    }
+
+    if (resolvedPerson.id === undefined) {
       throw new Error('Unable to resolve saved person id from API response')
     }
 
-    const organizations = await this.fetchPersonOrganizations(person.id)
-    person.organizations = organizations
+    const organizations = await this.fetchPersonOrganizations(resolvedPerson.id)
+    resolvedPerson.organizations = organizations
 
-    return person
+    return resolvedPerson
   }
 
 }
