@@ -137,6 +137,8 @@ L'analyse couvre le backend et le frontend dans un seul projet SonarQube.
 - Côté front, les ressources CSS et les assets de production sont maintenant fingerprintés avec un hash grâce à `outputHashing: all` dans le build Angular.
 - Ce point était critique pour éviter la persistance de fichiers CSS obsolètes après déploiement et limiter les comportements incohérents liés au cache navigateur ou au cache CDN.
 - La correction est appliquée au build de production du frontend, ce qui garantit des noms de fichiers uniques à chaque nouvelle version.
+- Sur l'écran de détail d'une personne, la liste des organisations pouvait apparaître vide sans erreur manifeste dans les logs applicatifs ni dans la CI, ce qui rendait le défaut peu visible en supervision.
+- Le correctif charge explicitement les organisations au démarrage et synchronise l'affichage après ajout/suppression d'association pour éviter ce faux état vide dans l'IHM.
 
 ### Préconisations d'usage
 
