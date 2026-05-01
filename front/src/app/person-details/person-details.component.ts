@@ -28,6 +28,8 @@ export class PersonDetailsComponent implements OnInit {
   organizations: Organization[] = []
   selectedOrganization: Organization | null = null;
   isNew: boolean = false;
+  private readonly pendingOrganizationAdditions = new Set<number>();
+  private readonly pendingOrganizationRemovals = new Set<number>();
 
   constructor(readonly route: ActivatedRoute, readonly personService: PersonService, readonly organizationService: OrganizationService, readonly router: Router, readonly monitoringLogger: MonitoringLoggerService) {
   }
@@ -50,6 +52,9 @@ export class PersonDetailsComponent implements OnInit {
   }
 
   private handleRouteParam(personIdParam: string | null) {
+    this.pendingOrganizationAdditions.clear()
+    this.pendingOrganizationRemovals.clear()
+
     if (personIdParam === 'new') {
       this.isNew = true
       this.person = {
@@ -89,11 +94,32 @@ export class PersonDetailsComponent implements OnInit {
     })
 
     this.person = savedPerson
+    let shouldRefresh = false
 
     if (pendingOrganizationIds.length > 0 && this.person.id !== undefined) {
       await Promise.all(
         pendingOrganizationIds.map(orgId => this.organizationService.addPerson(orgId, this.person.id as number))
       )
+      shouldRefresh = true
+    }
+
+    if (this.pendingOrganizationAdditions.size > 0 && this.person.id !== undefined) {
+      await Promise.all(
+        Array.from(this.pendingOrganizationAdditions).map(orgId => this.organizationService.addPerson(orgId, this.person.id as number))
+      )
+      this.pendingOrganizationAdditions.clear()
+      shouldRefresh = true
+    }
+
+    if (this.pendingOrganizationRemovals.size > 0 && this.person.id !== undefined) {
+      await Promise.all(
+        Array.from(this.pendingOrganizationRemovals).map(orgId => this.organizationService.removePerson(orgId, this.person.id as number))
+      )
+      this.pendingOrganizationRemovals.clear()
+      shouldRefresh = true
+    }
+
+    if (shouldRefresh) {
       await this.refresh()
     }
 
@@ -120,14 +146,19 @@ export class PersonDetailsComponent implements OnInit {
 
     if (this.person.id === undefined) {
       this.monitoringLogger.logError({ level: 'ERROR', message: `addSelectedOrganization called before person save, adding org id=${this.selectedOrganization.id} locally` })
-      this.person.organizations = [...this.person.organizations, this.selectedOrganization]
-      this.selectedOrganization = null
-      return
     }
 
-    await this.organizationService.addPerson(this.selectedOrganization.id, this.person.id)
+    this.person.organizations = [...this.person.organizations, this.selectedOrganization]
+
+    if (this.person.id !== undefined) {
+      if (this.pendingOrganizationRemovals.has(this.selectedOrganization.id)) {
+        this.pendingOrganizationRemovals.delete(this.selectedOrganization.id)
+      } else {
+        this.pendingOrganizationAdditions.add(this.selectedOrganization.id)
+      }
+    }
+
     this.selectedOrganization = null
-    await this.refresh()
   }
 
   async removeOrganization(org: Organization) {
@@ -142,8 +173,13 @@ export class PersonDetailsComponent implements OnInit {
       return
     }
 
-    await this.organizationService.removePerson(org.id, this.person.id)
-    await this.refresh()
+    this.person.organizations = this.person.organizations.filter(linkedOrg => linkedOrg.id !== org.id)
+    if (this.pendingOrganizationAdditions.has(org.id)) {
+      this.pendingOrganizationAdditions.delete(org.id)
+      return
+    }
+
+    this.pendingOrganizationRemovals.add(org.id)
   }
 
   async refresh() {
