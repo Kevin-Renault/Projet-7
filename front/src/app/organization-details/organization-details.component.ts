@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Person, PersonService } from '../person.service';
 import { Organization, OrganizationService } from '../organization.service';
+import { MonitoringLoggerService } from '../monitoring-logger.service';
 
 @Component({
   selector: 'app-organization-details',
@@ -22,7 +23,7 @@ export class OrganizationDetailsComponent implements OnInit {
 
   isNew: boolean = false;
 
-  constructor(readonly route: ActivatedRoute, readonly personService: PersonService, readonly organizationService: OrganizationService, readonly router: Router) {
+  constructor(readonly route: ActivatedRoute, readonly personService: PersonService, readonly organizationService: OrganizationService, readonly router: Router, readonly monitoringLogger: MonitoringLoggerService) {
   }
 
   ngOnInit(): void {
@@ -53,7 +54,10 @@ export class OrganizationDetailsComponent implements OnInit {
   }
 
   deleteOrg() {
-    if (this.org.id === undefined) return
+    if (this.org.id === undefined) {
+      this.monitoringLogger.logError({ level: 'ERROR', message: 'deleteOrg called with undefined org id' })
+      return
+    }
     this.organizationService.deleteById(this.org.id).then(() => {
       this.router.navigate([""])
     })

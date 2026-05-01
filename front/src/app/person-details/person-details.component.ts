@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Person, PersonService } from '../person.service';
 import { Organization, OrganizationService } from '../organization.service';
+import { MonitoringLoggerService } from '../monitoring-logger.service';
 
 @Component({
   selector: 'app-person-details',
@@ -27,38 +28,104 @@ export class PersonDetailsComponent implements OnInit {
   organizations: Organization[] = []
   selectedOrganization: Organization | null = null;
   isNew: boolean = false;
+  private readonly pendingOrganizationAdditions = new Set<number>();
+  private readonly pendingOrganizationRemovals = new Set<number>();
 
-  constructor(readonly route: ActivatedRoute, readonly personService: PersonService, readonly organizationService: OrganizationService, readonly router: Router) {
+  constructor(readonly route: ActivatedRoute, readonly personService: PersonService, readonly organizationService: OrganizationService, readonly router: Router, readonly monitoringLogger: MonitoringLoggerService) {
   }
 
   async initialize() {
-    this.organizationService.fetchAll().then(orgs => this.organizations = orgs)
+    this.organizations = await this.organizationService.fetchAll()
   }
 
   ngOnInit(): void {
-    const routeParams = this.route.snapshot.paramMap;
-    const personIdParam = routeParams.get('personId');
+    void this.initialize()
+
+    if (this.route.paramMap && typeof this.route.paramMap.subscribe === 'function') {
+      this.route.paramMap.subscribe(routeParams => {
+        this.handleRouteParam(routeParams.get('personId'))
+      })
+      return
+    }
+
+    this.handleRouteParam(this.route.snapshot.paramMap.get('personId'))
+  }
+
+  private handleRouteParam(personIdParam: string | null) {
+    this.pendingOrganizationAdditions.clear()
+    this.pendingOrganizationRemovals.clear()
 
     if (personIdParam === 'new') {
       this.isNew = true
-    } else if (typeof personIdParam === 'string') {
-      const personId = Number.parseInt(personIdParam)
-      this.personService.fetchById(personId).then(p => {
-        this.person = p
-        this.isNew = false
-      })
+      this.person = {
+        id: undefined,
+        firstName: '',
+        lastName: '',
+        phone: '',
+        email: '',
+        bio: '',
+        createdAt: new Date(),
+        updatedAt: undefined,
+        organizations: []
+      }
+      return
+    }
+
+    if (typeof personIdParam === 'string') {
+      const personId = Number.parseInt(personIdParam, 10)
+      if (Number.isFinite(personId)) {
+        this.personService.fetchById(personId).then(p => {
+          this.person = p
+          this.isNew = false
+        })
+      }
     }
   }
 
-  savePerson() {
-    this.personService.save({
+  async savePerson() {
+    const pendingOrganizationIds = this.isNew
+      ? this.person.organizations
+        .map(org => org.id)
+        .filter((id): id is number => id !== undefined)
+      : []
+
+    const savedPerson = await this.personService.save({
       ...this.person
-    }).then(p => {
-      this.person = p
-      if (this.isNew) {
-        this.router.navigate(["persons", p.id])
-      }
     })
+
+    this.person = savedPerson
+    let shouldRefresh = false
+
+    if (pendingOrganizationIds.length > 0 && this.person.id !== undefined) {
+      await Promise.all(
+        pendingOrganizationIds.map(orgId => this.organizationService.addPerson(orgId, this.person.id as number))
+      )
+      shouldRefresh = true
+    }
+
+    if (this.pendingOrganizationAdditions.size > 0 && this.person.id !== undefined) {
+      await Promise.all(
+        Array.from(this.pendingOrganizationAdditions).map(orgId => this.organizationService.addPerson(orgId, this.person.id as number))
+      )
+      this.pendingOrganizationAdditions.clear()
+      shouldRefresh = true
+    }
+
+    if (this.pendingOrganizationRemovals.size > 0 && this.person.id !== undefined) {
+      await Promise.all(
+        Array.from(this.pendingOrganizationRemovals).map(orgId => this.organizationService.removePerson(orgId, this.person.id as number))
+      )
+      this.pendingOrganizationRemovals.clear()
+      shouldRefresh = true
+    }
+
+    if (shouldRefresh) {
+      await this.refresh()
+    }
+
+    if (this.isNew) {
+      this.router.navigate(["persons", this.person.id])
+    }
   }
 
   deletePerson() {
@@ -68,23 +135,56 @@ export class PersonDetailsComponent implements OnInit {
     })
   }
 
-  addSelectedOrganization() {
-    if (this.selectedOrganization?.id === undefined || this.person.id === undefined) return
-    this.organizationService.addPerson(this.selectedOrganization.id, this.person.id)
-    this.refresh()
+  async addSelectedOrganization() {
+    if (this.selectedOrganization?.id === undefined) {
+      this.monitoringLogger.logError({ level: 'ERROR', message: 'addSelectedOrganization called with undefined organization id' })
+      return
+    }
+
+    const alreadyLinked = this.person.organizations.some(org => org.id === this.selectedOrganization?.id)
+    if (alreadyLinked) return
+
+    if (this.person.id === undefined) {
+      this.monitoringLogger.logError({ level: 'ERROR', message: `addSelectedOrganization called before person save, adding org id=${this.selectedOrganization.id} locally` })
+    }
+
+    this.person.organizations = [...this.person.organizations, this.selectedOrganization]
+
+    if (this.person.id !== undefined) {
+      if (this.pendingOrganizationRemovals.has(this.selectedOrganization.id)) {
+        this.pendingOrganizationRemovals.delete(this.selectedOrganization.id)
+      } else {
+        this.pendingOrganizationAdditions.add(this.selectedOrganization.id)
+      }
+    }
+
+    this.selectedOrganization = null
   }
 
-  removeOrganization(org: Organization) {
-    if (org?.id === undefined || this.person.id === undefined) return
-    this.organizationService.removePerson(org.id, this.person.id)
-    this.refresh()
+  async removeOrganization(org: Organization) {
+    if (org?.id === undefined) {
+      this.monitoringLogger.logError({ level: 'ERROR', message: 'removeOrganization called with undefined org id' })
+      return
+    }
+
+    if (this.person.id === undefined) {
+      this.monitoringLogger.logError({ level: 'ERROR', message: `removeOrganization called before person save, removing org id=${org.id} locally` })
+      this.person.organizations = this.person.organizations.filter(linkedOrg => linkedOrg.id !== org.id)
+      return
+    }
+
+    this.person.organizations = this.person.organizations.filter(linkedOrg => linkedOrg.id !== org.id)
+    if (this.pendingOrganizationAdditions.has(org.id)) {
+      this.pendingOrganizationAdditions.delete(org.id)
+      return
+    }
+
+    this.pendingOrganizationRemovals.add(org.id)
   }
 
-  refresh() {
+  async refresh() {
     if (this.person.id === undefined) return
-    this.personService.fetchById(this.person.id).then(p => {
-      this.person = p
-      this.isNew = false
-    })
+    this.person = await this.personService.fetchById(this.person.id)
+    this.isNew = false
   }
 }

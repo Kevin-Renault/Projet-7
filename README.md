@@ -137,11 +137,18 @@ L'analyse couvre le backend et le frontend dans un seul projet SonarQube.
 - Côté front, les ressources CSS et les assets de production sont maintenant fingerprintés avec un hash grâce à `outputHashing: all` dans le build Angular.
 - Ce point était critique pour éviter la persistance de fichiers CSS obsolètes après déploiement et limiter les comportements incohérents liés au cache navigateur ou au cache CDN.
 - La correction est appliquée au build de production du frontend, ce qui garantit des noms de fichiers uniques à chaque nouvelle version.
+- Sur l'écran de détail d'une personne, la liste des organisations pouvait apparaître vide sans erreur manifeste dans les logs applicatifs ni dans la CI, ce qui rendait le défaut peu visible en supervision.
+- Le correctif charge explicitement les organisations au démarrage et synchronise l'affichage après ajout/suppression d'association pour éviter ce faux état vide dans l'IHM.
+- Point critique UX identifié : l'absence de messages explicites côté utilisateur (succès, erreur, action impossible) rend le diagnostic difficile et augmente le risque d'incompréhension fonctionnelle.
+- Point critique UX identifié : après sauvegarde (personne ou organisation), la redirection vers l'URL de l'objet pouvait casser le parcours attendu et désorienter l'utilisateur.
+- Le correctif applique une redirection uniforme vers la page centrale après sauvegarde afin de garder un comportement cohérent et compréhensible pour les utilisateurs.
 
 ### Préconisations d'usage
 
 - Préférer une architecture multi-couche côté back, avec séparation entre API, service métier et persistance.
 - Ajouter un handler global pour les erreurs côté backend afin de centraliser les réponses d'erreur et éviter les retours incohérents.
+- Mettre en place des messages informatifs côté utilisateur (confirmation de sauvegarde, erreur de validation, échec réseau, action impossible) pour rendre l'application compréhensible sans lecture des logs.
+- Implémenter une gestion centralisée des erreurs côté frontend et backend ; sans ce socle, l'exploitation des logs devient presque inmaintenable à mesure que le projet grandit.
 - Valider les données d'entrée au plus tôt, par exemple avec des contraintes Bean Validation sur les DTO ou les entités exposées.
 - Conserver les logs métier et les logs techniques séparés pour faciliter le diagnostic dans ELK et dans la CI.
 

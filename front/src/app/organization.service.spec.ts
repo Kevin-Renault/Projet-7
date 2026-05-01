@@ -145,7 +145,7 @@ describe('OrganizationService', () => {
   it('should remove a person from an organization', async () => {
     const promise = service.removePerson(7, 1);
 
-    const request = httpMock.expectOne(`${API_BASE_URL}/persons/1/organizations/7`);
+    const request = httpMock.expectOne(`${API_BASE_URL}/organizations/7/persons/1`);
     expect(request.request.method).toBe('DELETE');
     request.flush(null);
 
