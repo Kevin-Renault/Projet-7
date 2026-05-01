@@ -40,6 +40,11 @@ jobs:
         run: |
           python3 .github/scripts/generate-kpi-report.py
 
+      - name: Publish report summary
+        shell: bash
+        run: |
+          cat "${{ github.event.inputs.output_path }}" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload report artifact
         uses: actions/upload-artifact@v4
         with:
