@@ -26,6 +26,13 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      - name: Enforce main branch
+        run: |
+          if [[ "${{ github.ref_name }}" != "main" ]]; then
+            echo "::error::Ce workflow doit être déclenché depuis main uniquement."
+            exit 1
+          fi
+
       - name: Checkout full history
         uses: actions/checkout@v4
         with:
