@@ -1,3 +1,18 @@
+# [3.8.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.7.0...v3.8.0) (2026-05-01)
+
+
+### Bug Fixes
+
+* **front:** load and refresh person organizations reliably ([fbfd711](https://github.com/Kevin-Renault/Projet-7/commit/fbfd711869b6087a0474c7e8ee9f417e569d5081))
+* **test:** fix detail test + add log ([02c0235](https://github.com/Kevin-Renault/Projet-7/commit/02c02359db4b2a55540ed52a1b4f430f3302bf2e))
+
+
+### Features
+
+* **front:** defer person organization additions until save and persist staged relation changes ([7fa62b2](https://github.com/Kevin-Renault/Projet-7/commit/7fa62b2f1d38e9f95a32f801888cc4ed8a13f0bf))
+* **front:** support org add/remove before first person save ([9d61a59](https://github.com/Kevin-Renault/Projet-7/commit/9d61a598a7f36f951709e942ef57f8b5b0c07ee1))
+* **ux:** redirect saves to home ([14d14b4](https://github.com/Kevin-Renault/Projet-7/commit/14d14b4ab6d75d28966c8cd6d753c722a1f5c76d))
+
 # [3.7.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.6.0...v3.7.0) (2026-05-01)
 
 
