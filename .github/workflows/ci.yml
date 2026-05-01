@@ -238,8 +238,11 @@ jobs: # Chaque job couvre une étape distincte de validation, build ou publicati
     # La publication finale ne démarre que si Sonar et les validations Docker sont tous au vert.
     needs: [setup, sonar-analysis, validate-docker-backend-with-pulled-image, validate-docker-frontend-with-pulled-image]
     timeout-minutes: 5
-    # La release ne part que sur un push vers main ou dev.
-    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev')
+    # En mode production, la release ne part que sur un push vers main.
+    # Pour réactiver semantic-release sur dev, restaurer la condition ci-dessous:
+    # github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev')
+    # Cela relancerait les préreleases semantic-release sur dev et republierait les artefacts versionnés avec le canal dev.
+    if: github.event_name == 'push' && github.ref_name == 'main'
     permissions:
       contents: write
       packages: write
