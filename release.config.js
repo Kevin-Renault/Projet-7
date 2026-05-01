@@ -4,10 +4,13 @@ const {
 } = require('./paths.config');
 
 module.exports = {
-    // main publishes stable releases, dev publishes prereleases.
+    // main publishes stable releases.
+    // To restore semantic-release on dev, uncomment the branch below.
+    // That would produce prerelease versions on the dev channel (for example x.y.z-dev.n)
+    // and would republish the related release artifacts from the dev branch.
     branches: [
         'main',
-        { name: 'dev', channel: 'dev', prerelease: 'dev' }
+        // { name: 'dev', channel: 'dev', prerelease: 'dev' }
     ],
     plugins: [
         '@semantic-release/commit-analyzer',
