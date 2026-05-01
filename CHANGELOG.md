@@ -1,3 +1,15 @@
+# [3.9.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.8.0...v3.9.0) (2026-05-01)
+
+
+### Bug Fixes
+
+* **doc:** readme ([4ffbeb6](https://github.com/Kevin-Renault/Projet-7/commit/4ffbeb67041cbbb03c2eeb79df958482d2cefdff))
+
+
+### Features
+
+* **kibana:** add log level distribution table panel to dashboard ([65be307](https://github.com/Kevin-Renault/Projet-7/commit/65be307878e242fa3e014817d5d27d6468a31fd3))
+
 # [3.8.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.7.0...v3.8.0) (2026-05-01)
 
 
