@@ -1,3 +1,15 @@
+# [3.5.0-dev.1](https://github.com/Kevin-Renault/Projet-7/compare/v3.4.0...v3.5.0-dev.1) (2026-05-01)
+
+
+### Bug Fixes
+
+* display report in summary GitHub Actions ([9f8cf75](https://github.com/Kevin-Renault/Projet-7/commit/9f8cf752bc5c061bbbcf35962da16e00e2d7c164))
+
+
+### Features
+
+* **kpi:** use branch creation date and readable period in KPI report ([8c53885](https://github.com/Kevin-Renault/Projet-7/commit/8c53885a270160fccce2d38fa75f1f12d719856c))
+
 # [3.4.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.3.0...v3.4.0) (2026-04-30)
 
 
