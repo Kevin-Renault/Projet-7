@@ -1,3 +1,10 @@
+# [3.7.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.6.0...v3.7.0) (2026-05-01)
+
+
+### Features
+
+* **kpi:** add daily max pipeline duration table ([eecac61](https://github.com/Kevin-Renault/Projet-7/commit/eecac611b48e1172c36e9072ac5a5c3c34d8e336))
+
 # [3.6.0](https://github.com/Kevin-Renault/Projet-7/compare/v3.5.1...v3.6.0) (2026-05-01)
 
 
