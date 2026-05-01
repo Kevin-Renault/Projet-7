@@ -1,7 +1,7 @@
 # Rapport DORA automatique
 
 - Branche d'exécution: main
-- Début demandé: 2026-04-13
+- Début demandé: <vide>
 - Fin demandée: <vide>
 - Règle par défaut: si une date est vide, le workflow prend toute la vie du flux concerné.
 
@@ -10,40 +10,23 @@
 
 ## Flux branches -> dev
 
-- Période retenue: 2026-04-13T00:00:00+00:00 -> 2026-04-23T18:17:15+02:00
+- Période retenue: 2026-04-29T15:21:30+02:00 -> 2026-04-29T15:21:30+02:00
 
 | Date merge | PR | Branche source | Premier commit | Lead time | Sujet |
 | --- | ---: | --- | --- | ---: | --- |
-| 2026-04-15 15:43 | #14 | refactor/ci | 0b2ee0d9 (2026-04-02 15:43) | 312.01 h | Merge pull request #14 from Kevin-Renault/refactor/ci |
-| 2026-04-15 16:03 | #15 | refactor/ci | 8919b425 (2026-04-15 16:03) | 0.01 h | Merge pull request #15 from Kevin-Renault/refactor/ci |
-| 2026-04-15 16:37 | #16 | refactor/ci | db8eae44 (2026-04-15 16:33) | 0.06 h | Merge pull request #16 from Kevin-Renault/refactor/ci |
-| 2026-04-15 17:59 | #17 | perf/ci-pipeline-optimization | c0ef0521 (2026-04-15 16:58) | 1.01 h | Merge pull request #17 from Kevin-Renault/perf/ci-pipeline-optimization |
-| 2026-04-16 12:12 | #18 | perf/ci-pipeline-optimization | 3888d01e (2026-04-16 12:08) | 0.07 h | Merge pull request #18 from Kevin-Renault/perf/ci-pipeline-optimization |
-| 2026-04-16 16:22 | #20 | fix/sonar-quality-issues | e6d8c33f (2026-04-16 12:35) | 3.79 h | Merge pull request #20 from Kevin-Renault/fix/sonar-quality-issues |
-| 2026-04-16 18:08 | #22 | fix/sonar-quality-issues | 191dc32c (2026-04-16 17:23) | 0.74 h | Merge pull request #22 from Kevin-Renault/fix/sonar-quality-issues |
-| 2026-04-17 10:49 | #25 | fix/sonar-quality-issues | 93259e08 (2026-04-17 10:05) | 0.74 h | Merge pull request #25 from Kevin-Renault/fix/sonar-quality-issues |
-| 2026-04-17 11:00 | #27 | fix/sonar-quality-issues | 8ed5c6d2 (2026-04-17 10:56) | 0.07 h | Merge pull request #27 from Kevin-Renault/fix/sonar-quality-issues |
-| 2026-04-17 11:46 | #28 | fix/sonar-quality-issues | eb63d729 (2026-04-17 11:42) | 0.06 h | Merge pull request #28 from Kevin-Renault/fix/sonar-quality-issues |
-| 2026-04-17 12:15 | #29 | fix/sonar-quality-issues | 05cbaf71 (2026-04-17 12:13) | 0.03 h | Merge pull request #29 from Kevin-Renault/fix/sonar-quality-issues |
-| 2026-04-17 12:37 | #31 | fix/sonar-quality-issues | 83d6c239 (2026-04-17 12:36) | 0.02 h | Merge pull request #31 from Kevin-Renault/fix/sonar-quality-issues |
-| 2026-04-17 14:03 | #34 | fix/release-optimization | f8875321 (2026-04-17 14:01) | 0.03 h | Merge pull request #34 from Kevin-Renault/fix/release-optimization |
-| 2026-04-17 14:14 | #35 | fix/release-optimization | de757c62 (2026-04-17 14:13) | 0.01 h | Merge pull request #35 from Kevin-Renault/fix/release-optimization |
-| 2026-04-17 14:21 | #36 | fix/release-optimization | 340be704 (2026-04-17 14:21) | 0.01 h | Merge pull request #36 from Kevin-Renault/fix/release-optimization |
-| 2026-04-17 14:35 | #37 | fix/release-optimization | 96ff0100 (2026-04-17 14:30) | 0.08 h | Merge pull request #37 from Kevin-Renault/fix/release-optimization |
-| 2026-04-17 14:57 | #38 | fix/sonar-quality-issues | 9ae7fd3a (2026-04-17 14:48) | 0.16 h | Merge pull request #38 from Kevin-Renault/fix/sonar-quality-issues |
-| 2026-04-17 16:33 | #40 | fix/package-front | 8d99bffb (2026-04-17 16:26) | 0.12 h | Merge pull request #40 from Kevin-Renault/fix/package-front |
-| 2026-04-21 18:00 | #42 | feat/ci-periodic-tests | 45a08e0f (2026-04-21 17:14) | 0.76 h | Merge pull request #42 from Kevin-Renault/feat/ci-periodic-tests |
-| 2026-04-23 16:17 | #43 | feature/elk-logging-dashboard | 68e3d881 (2026-04-20 14:51) | 73.43 h | Merge pull request #43 from Kevin-Renault/feature/elk-logging-dashboard |
+| 2026-04-29 13:21 | #57 | feature/DORA-Report-finalisation | b468b089 (2026-04-29 13:14) | 0.11 h | Merge pull request #57 from Kevin-Renault/feature/DORA-Report-finalisation |
 
-- Nombre d'éléments: 20
-- Lead time moyen: 19.66 h
+- Nombre d'éléments: 1
+- Lead time moyen: 0.11 h
 
 ## Flux dev -> main
 
-- Période retenue: 2026-04-13T00:00:00+00:00 -> 2026-04-23T18:26:57+02:00
+- Période retenue: 2026-04-02T16:05:26+02:00 -> 2026-04-29T13:37:19+02:00
 
 | Date merge | PR | Branche source | Premier commit | Lead time | Sujet |
 | --- | ---: | --- | --- | ---: | --- |
+| 2026-04-02 14:05 | #4 | dev | 9325fb71 (2026-04-01 14:58) | 23.12 h | Merge pull request #4 from Kevin-Renault/dev |
+| 2026-04-02 15:26 | #13 | dev | e9e08334 (2026-04-02 14:19) | 1.11 h | Merge pull request #13 from Kevin-Renault/dev |
 | 2026-04-16 15:23 | #19 | dev | 0b2ee0d9 (2026-04-02 15:43) | 335.66 h | Merge pull request #19 from Kevin-Renault/dev |
 | 2026-04-16 17:12 | #21 | dev | e6d8c33f (2026-04-16 12:35) | 4.62 h | Merge pull request #21 from Kevin-Renault/dev |
 | 2026-04-16 18:10 | #23 | dev | 10092901 (2026-04-16 17:13) | 0.94 h | Merge pull request #23 from Kevin-Renault/dev |
@@ -53,14 +36,31 @@
 | 2026-04-17 15:10 | #39 | dev | 5cb8f97b (2026-04-17 13:14) | 1.94 h | Merge pull request #39 from Kevin-Renault/dev |
 | 2026-04-17 16:44 | #41 | dev | 8d99bffb (2026-04-17 16:26) | 0.30 h | Merge pull request #41 from Kevin-Renault/dev |
 | 2026-04-23 16:26 | #44 | dev | a48f25f2 (2026-04-17 16:47) | 143.65 h | Merge pull request #44 from Kevin-Renault/dev |
+| 2026-04-24 10:09 | #47 | dev | 0c9d4809 (2026-04-24 09:51) | 0.30 h | Merge pull request #47 from Kevin-Renault/dev |
+| 2026-04-24 10:41 | #50 | dev | 4e5948f8 (2026-04-24 10:22) | 0.33 h | Merge pull request #50 from Kevin-Renault/dev |
+| 2026-04-28 12:42 | #52 | dev | 80fe94c3 (2026-04-28 12:36) | 0.11 h | Merge pull request #52 from Kevin-Renault/dev |
+| 2026-04-29 10:29 | #54 | dev | 11785faa (2026-04-28 12:45) | 21.72 h | Merge pull request #54 from Kevin-Renault/dev |
+| 2026-04-29 11:37 | #56 | dev | 2b3da056 (2026-04-29 11:26) | 0.17 h | Merge pull request #56 from Kevin-Renault/dev |
 
-- Nombre d'éléments: 9
-- Lead time moyen: 54.39 h
+- Nombre d'éléments: 16
+- Lead time moyen: 33.52 h
+
+## Tableau final des 4 métriques DORA
+
+| Métrique DORA | Valeur | Source | Note |
+| --- | ---: | --- | --- |
+| Deployment frequency | 2.86 déploiements/semaine | GitHub Actions (, runs succès sur ) | 11 runs succès sur 13 runs analysés |
+| Lead time for changes | 33.52 h | Git history ( -> ) | Moyenne sur la période retenue |
+| Change failure rate (CFR) | 15.38% | GitHub Actions (, conclusions ) | 2 échecs sur 13 runs succès+échec |
+| MTTR | 89.57 h | GitHub Actions ( -> prochain ) | 2 incidents résolus, 0 non résolus dans la fenêtre |
 
 ## Méthode de calcul
 
 - Les merges sont extraits depuis l'historique Git avec git log sur les branches dev et main.
 - Le lead time est estimé entre le premier commit de la PR et le merge final.
+- Deployment frequency, CFR et MTTR sont calculés depuis l'API GitHub Actions sur le workflow ci.yml (branche main, event push).
+- CFR utilise les runs terminés avec conclusion success/failure: CFR = failures / (success + failure).
+- MTTR mesure le temps entre un run failure et le prochain run success.
 - Par défaut, si start_date ou end_date sont vides, le workflow prend la vie complète du flux considéré.
 - Le rapport est écrit dans artifacts/dora-report.md et peut être publié comme artefact.
 
@@ -88,3 +88,48 @@
 1. Ajouter un export automatique des runs de release (succès/échec) dans le workflow DORA.
 2. Ajouter un journal d'incidents simple (timestamp début/fin, cause, PR/release liée).
 3. Publier CFR et MTTR calculés à chaque génération de rapport.
+
+## Préconisations opérationnelles et KPIs de suivi
+
+### Alerte sur échec CI — priorité haute
+
+**Constat** : le MTTR mesuré est de 89.57 h, principalement à cause d'un délai de correction long après un pipeline en échec (pause week-end probable).
+
+**Préconisation** : déclencher une notification immédiate (GitHub notification / Slack / email) dès qu'un run `ci.yml` se termine avec `conclusion: failure` sur `main`.
+
+Cible de correction : **≤ 4 heures ouvrées** après l'alerte.
+
+Mise en œuvre possible dans GitHub Actions :
+
+```yaml
+# Extrait à ajouter dans ci.yml, job notify-failure
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+jobs:
+  notify:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify failure
+        run: |
+          echo "Pipeline CI en échec sur main — intervention requise sous 4h ouvrées"
+          # Remplacer par un appel webhook Slack/Teams/email selon l'infrastructure
+```
+
+### MTTR comme KPI opérationnel
+
+**Oui, le MTTR est un KPI à part entière**, et pas uniquement une métrique DORA.
+
+| Caractéristique | Détail |
+| --- | --- |
+| Type | KPI opérationnel de résilience |
+| Périmètre DORA | Élite : < 1 h — High : < 24 h — Medium : < 1 sem — Low : > 1 sem |
+| Valeur mesurée ici | 89.57 h → niveau **Low** |
+| Biais identifié | Inclut les pauses week-end ; mesure tous les échecs CI, pas uniquement les incidents production |
+| Objectif cible | Ramener le MTTR à < 24 h (niveau High) via alerte immédiate + rotation d'astreinte définie |
+| Suivi recommandé | Régénérer le rapport DORA après chaque sprint pour observer la tendance |
+
+Le MTTR est le KPI le plus actionnable ici : une seule action (alerte + SLA de correction) permet de passer directement du niveau Low au niveau High sur ce projet.

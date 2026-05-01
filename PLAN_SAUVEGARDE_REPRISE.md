@@ -139,4 +139,4 @@ Ces cibles restent indicatives tant que le projet n'utilise pas une base métier
 
 - Brancher une base persistante pour les données métier (au lieu d'un mode transitoire).
 - Planifier un job périodique de snapshot/export (cron CI ou ordonnanceur externe).
-- Ajouter une preuve automatique de restauration (workflow dédié de test de reprise).
+- Preuve automatique de restauration implémentée via le workflow GitHub Actions `.github/workflows/recovery-test.yml` (déclenchement manuel + hebdomadaire).
